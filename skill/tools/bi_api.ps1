@@ -1,4 +1,4 @@
-# bi_api.ps1 - zero-dependency Monitor BI client (Windows built-in PowerShell 5.1+)
+﻿# bi_api.ps1 - zero-dependency Monitor BI client (Windows built-in PowerShell 5.1+)
 # Same commands and bi_config.env as bi_api.js. Use when Node.js is NOT installed.
 # NOTE: keep this file ASCII-only (PS 5.1 encoding safety with non-ASCII sources).
 # Usage: powershell -ExecutionPolicy Bypass -File bi_api.ps1 <command> [args]
@@ -174,7 +174,7 @@ if ($Command -eq 'config') {
     ('BI_PASSWORD=' + $Rest[3]),
     '',
     '# Optional: BI server log dir (verify command); keep commented if BI is on another machine',
-    '# BI_LOG_DIR=C:\Program Files\Monitor ERP System AB\MONITOR BI Server\Logs',
+    '# BI_LOG_DIR=<BI安装目录>\Logs',
     '',
     '# Optional: direct DB export of raw XML definitions (get-xml); differs per machine, fill when needed',
     '# PG_PSQL=C:\Program Files\PostgreSQL\18\bin\psql.exe',
