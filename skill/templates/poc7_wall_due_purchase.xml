@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Dashboard CurrencyCulture="chr-US">
+  <Title Text="采购应交未交(准实时·5分钟)" Alignment="Left" />
+  <DataSources>
+    <SqlDataSource Name="Custom Extractions" ComponentName="sqlDataSource1">
+      <Connection Name="connection" ProviderKey="Postgres">
+        <Parameters>
+          <Parameter Name="server" Value="localhost" />
+          <Parameter Name="database" Value="BusinessIntelligence" />
+          <Parameter Name="read only" Value="1" />
+          <Parameter Name="Port" Value="5432" />
+        </Parameters>
+      </Connection>
+      <Query Type="SelectQuery" Name="应交未交采购行(准实时)">
+        <Tables>
+          <Table Name="bi.due_purchase_lines" Alias="应交未交采购行(准实时)" />
+        </Tables>
+        <Columns>
+          <Column Table="应交未交采购行(准实时)" Name="row_id" />
+          <Column Table="应交未交采购行(准实时)" Name="order_number" />
+          <Column Table="应交未交采购行(准实时)" Name="supplier" />
+          <Column Table="应交未交采购行(准实时)" Name="part_number" />
+          <Column Table="应交未交采购行(准实时)" Name="part_name" />
+          <Column Table="应交未交采购行(准实时)" Name="ordered_qty" />
+          <Column Table="应交未交采购行(准实时)" Name="delivered_qty" />
+          <Column Table="应交未交采购行(准实时)" Name="remaining_qty" />
+          <Column Table="应交未交采购行(准实时)" Name="desired_date" />
+          <Column Table="应交未交采购行(准实时)" Name="confirmed_date" />
+          <Column Table="应交未交采购行(准实时)" Name="due_date" />
+          <Column Table="应交未交采购行(准实时)" Name="overdue_days" />
+          <Column Table="应交未交采购行(准实时)" Name="due_status" />
+          <Column Table="应交未交采购行(准实时)" Name="remaining_value" />
+        </Columns>
+      </Query>
+    </SqlDataSource>
+  </DataSources>
+  <Items>
+    <Card ComponentName="cardDashboardItem1" Name="应交未交行数" ShowCaption="false" DataSource="sqlDataSource1" DataMember="应交未交采购行(准实时)">
+      <DataItems>
+        <Measure DataMember="row_id" SummaryType="Count" DefaultId="DataItem2">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Card ComponentName="cardDashboardItem2" Name="未交金额" ShowCaption="false" DataSource="sqlDataSource1" DataMember="应交未交采购行(准实时)">
+      <DataItems>
+        <Measure DataMember="remaining_value" SummaryType="Sum" DefaultId="DataItem2">
+          <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Card ComponentName="cardDashboardItem3" Name="最长逾期(天)" ShowCaption="false" DataSource="sqlDataSource1" DataMember="应交未交采购行(准实时)">
+      <DataItems>
+        <Measure DataMember="overdue_days" SummaryType="Max" DefaultId="DataItem2">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Grid ComponentName="gridDashboardItem1" Name="应交未交明细" DataSource="sqlDataSource1" DataMember="应交未交采购行(准实时)">
+      <DataItems>
+        <Dimension DataMember="due_date" DateTimeGroupInterval="DayMonthYear" DefaultId="DataItem1" SortOrder="Ascending" />
+        <Dimension DataMember="supplier" DefaultId="DataItem2" />
+        <Dimension DataMember="part_number" DefaultId="DataItem3" />
+        <Dimension DataMember="part_name" DefaultId="DataItem4" />
+        <Dimension DataMember="order_number" DefaultId="DataItem5" />
+        <Measure DataMember="ordered_qty" SummaryType="Sum" DefaultId="DataItem6">
+          <NumericFormat FormatType="Number" Precision="1" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="delivered_qty" SummaryType="Sum" DefaultId="DataItem7">
+          <NumericFormat FormatType="Number" Precision="1" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="remaining_qty" SummaryType="Sum" DefaultId="DataItem8">
+          <NumericFormat FormatType="Number" Precision="1" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="overdue_days" SummaryType="Max" DefaultId="DataItem9">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" />
+        </Measure>
+        <Measure DataMember="remaining_value" SummaryType="Sum" DefaultId="DataItem10">
+          <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+        <Dimension DataMember="due_status" DefaultId="DataItem11" />
+      </DataItems>
+      <FormatRules>
+        <GridItemFormatRule Name="今日到期黄色" DataItem="DataItem11" DataItemApplyTo="DataItem1">
+          <FormatConditionExpression Expression="[DataItem11] = 'TODAY'">
+            <AppearanceSettings AppearanceType="Yellow" />
+          </FormatConditionExpression>
+        </GridItemFormatRule>
+        <GridItemFormatRule Name="逾期红色" DataItem="DataItem11" DataItemApplyTo="DataItem1">
+          <FormatConditionExpression Expression="[DataItem11] = 'OVERDUE'">
+            <AppearanceSettings AppearanceType="Red" />
+          </FormatConditionExpression>
+        </GridItemFormatRule>
+        <GridItemFormatRule Name="逾期天数箭头" DataItem="DataItem9" DataItemApplyTo="DataItem9">
+          <FormatConditionRangeSet ValueType="Number">
+            <RangeSet>
+              <Ranges>
+                <RangeInfo><Value Type="System.Decimal" Value="0" /><IconSettings IconType="IndicatorGreenCheck" /></RangeInfo>
+                <RangeInfo><Value Type="System.Decimal" Value="1" /><IconSettings IconType="DirectionalRedDownArrow" /></RangeInfo>
+              </Ranges>
+            </RangeSet>
+          </FormatConditionRangeSet>
+        </GridItemFormatRule>
+      </FormatRules>
+      <GridColumns>
+        <GridDimensionColumn Name="应交日期" Weight="70"><Dimension DefaultId="DataItem1" /></GridDimensionColumn>
+        <GridDimensionColumn Name="供应商" Weight="140"><Dimension DefaultId="DataItem2" /></GridDimensionColumn>
+        <GridDimensionColumn Name="组件号" Weight="70"><Dimension DefaultId="DataItem3" /></GridDimensionColumn>
+        <GridDimensionColumn Name="组件名" Weight="140"><Dimension DefaultId="DataItem4" /></GridDimensionColumn>
+        <GridDimensionColumn Name="订单号" Weight="55"><Dimension DefaultId="DataItem5" /></GridDimensionColumn>
+        <GridDimensionColumn Name="状态" Weight="45"><Dimension DefaultId="DataItem11" /></GridDimensionColumn>
+        <GridMeasureColumn Name="订购量" Weight="45"><Measure DefaultId="DataItem6" /></GridMeasureColumn>
+        <GridMeasureColumn Name="已到量" Weight="45"><Measure DefaultId="DataItem7" /></GridMeasureColumn>
+        <GridMeasureColumn Name="未到量" Weight="45"><Measure DefaultId="DataItem8" /></GridMeasureColumn>
+        <GridMeasureColumn Name="逾期天数" Weight="55"><Measure DefaultId="DataItem9" /></GridMeasureColumn>
+        <GridMeasureColumn Name="未交金额" Weight="70"><Measure DefaultId="DataItem10" /></GridMeasureColumn>
+      </GridColumns>
+    </Grid>
+  </Items>
+  <LayoutTree>
+    <LayoutGroup Orientation="Vertical">
+      <LayoutGroup Orientation="Horizontal" Weight="0.13">
+        <LayoutItem DashboardItem="cardDashboardItem1" Weight="0.33" />
+        <LayoutItem DashboardItem="cardDashboardItem2" Weight="0.34" />
+        <LayoutItem DashboardItem="cardDashboardItem3" Weight="0.33" />
+      </LayoutGroup>
+      <LayoutItem DashboardItem="gridDashboardItem1" Weight="0.87" />
+    </LayoutGroup>
+  </LayoutTree>
+</Dashboard>
