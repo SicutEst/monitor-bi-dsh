@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Dashboard CurrencyCulture="chr-US">
+  <Title Text="供应商评估(交付表现)" Alignment="Left" />
+  <DataSources>
+    <SqlDataSource Name="Purchase" ComponentName="sqlDataSource1">
+      <Connection Name="connection" ProviderKey="Postgres">
+        <Parameters>
+          <Parameter Name="server" Value="localhost" />
+          <Parameter Name="database" Value="BusinessIntelligence" />
+          <Parameter Name="read only" Value="1" />
+          <Parameter Name="Port" Value="5432" />
+        </Parameters>
+      </Connection>
+      <Query Type="CustomSqlQuery" Name="供应商评估明细"><Sql>select s.name as supplier_name,
+ po.order_number as order_number,
+ p.part_number as part_number,
+ p.part_name as part_name,
+ r.delivery_date::date as due_date,
+ r.actual_delivery_date::date as actual_date,
+ (r.actual_delivery_date::date - r.delivery_date::date) as dev_days,
+ case when r.actual_delivery_date::date &lt;= r.delivery_date::date then '准时' else '迟到' end as on_time,
+ case when r.actual_delivery_date::date &lt;= r.delivery_date::date then 100 else 0 end as on_time_flag,
+ case when r.actual_delivery_date::date &lt;= r.delivery_date::date then 1 else 0 end as on_time_unit,
+ round((r.ordered_quantity * coalesce(p.standard_price,0))::numeric, 2) as row_value
+from bi.purchase_order_row r
+join bi.purchase_order po on po.id = r.purchase_order_id and po.company_id = r.company_id
+join bi.supplier s on s.id = po.supplier_id and s.company_id = r.company_id
+left join bi.part p on p.id = r.part_id and p.company_id = r.company_id
+where r.actual_delivery_date is not null</Sql></Query>
+    </SqlDataSource>
+  </DataSources>
+  <Items>
+    <Card ComponentName="cardDashboardItem1" Name="整体准时率(%)" ShowCaption="false" DataSource="sqlDataSource1" DataMember="供应商评估明细">
+      <DataItems>
+        <Measure DataMember="on_time_flag" Name="准时率" SummaryType="Average" DefaultId="DataItem2">
+          <NumericFormat FormatType="Number" Precision="1" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Card ComponentName="cardDashboardItem2" Name="参评供应商数" ShowCaption="false" DataSource="sqlDataSource1" DataMember="供应商评估明细">
+      <DataItems>
+        <Measure DataMember="supplier_name" Name="供应商数" SummaryType="CountDistinct" DefaultId="DataItem2">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Card ComponentName="cardDashboardItem3" Name="已交货金额(¥)" ShowCaption="false" DataSource="sqlDataSource1" DataMember="供应商评估明细">
+      <DataItems>
+        <Measure DataMember="row_value" Name="交货金额" SummaryType="Sum" DefaultId="DataItem2">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Grid ComponentName="gridDashboardItem1" Name="供应商汇总(点击穿透)" DataSource="sqlDataSource1" DataMember="供应商评估明细">
+      <InteractivityOptions MasterFilterMode="Multiple" />
+      <DataItems>
+        <Dimension DataMember="supplier_name" Name="供应商" DefaultId="S1" SortOrder="Descending" SortByMeasure="S4" />
+        <Measure DataMember="order_number" Name="到货行数" SummaryType="Count" DefaultId="S2">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="on_time_unit" Name="准时行数" SummaryType="Sum" DefaultId="S3">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="on_time_flag" Name="准时率(%)" SummaryType="Average" DefaultId="S4">
+          <NumericFormat FormatType="Number" Precision="1" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="dev_days" Name="平均偏差天数" SummaryType="Average" DefaultId="S5">
+          <NumericFormat FormatType="Number" Precision="1" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="row_value" Name="交货金额" SummaryType="Sum" DefaultId="S6">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <FormatRules>
+        <GridItemFormatRule Name="准时率评级" DataItem="S4" DataItemApplyTo="S4">
+          <FormatConditionRangeSet ValueType="Number">
+            <RangeSet>
+              <Ranges>
+                <RangeInfo><Value Type="System.Decimal" Value="0" /><IconSettings IconType="IndicatorRedCross" /></RangeInfo>
+                <RangeInfo><Value Type="System.Decimal" Value="60" /><IconSettings IconType="IndicatorYellowExclamation" /></RangeInfo>
+                <RangeInfo><Value Type="System.Decimal" Value="80" /><IconSettings IconType="IndicatorGreenCheck" /></RangeInfo>
+              </Ranges>
+            </RangeSet>
+          </FormatConditionRangeSet>
+        </GridItemFormatRule>
+      </FormatRules>
+      <GridOptions ColumnWidthMode="Manual" />
+      <GridColumns>
+        <GridDimensionColumn Name="供应商" Weight="170"><Dimension DefaultId="S1" /></GridDimensionColumn>
+        <GridMeasureColumn Name="到货行数" Weight="50"><Measure DefaultId="S2" /></GridMeasureColumn>
+        <GridMeasureColumn Name="准时行数" Weight="50"><Measure DefaultId="S3" /></GridMeasureColumn>
+        <GridMeasureColumn Name="准时率(%)" Weight="70"><Measure DefaultId="S4" /></GridMeasureColumn>
+        <GridMeasureColumn Name="平均偏差天数" Weight="60"><Measure DefaultId="S5" /></GridMeasureColumn>
+        <GridMeasureColumn Name="交货金额(¥)" Weight="80"><Measure DefaultId="S6" /></GridMeasureColumn>
+      </GridColumns>
+    </Grid>
+    <Grid ComponentName="gridDashboardItem2" Name="到货明细" DataSource="sqlDataSource1" DataMember="供应商评估明细">
+      <DataItems>
+        <Dimension DataMember="due_date" Name="应交日期" DateTimeGroupInterval="DayMonthYear" DefaultId="D1" SortOrder="Ascending" />
+        <Dimension DataMember="supplier_name" Name="供应商" DefaultId="D2" />
+        <Dimension DataMember="order_number" Name="订单号" DefaultId="D3" />
+        <Dimension DataMember="part_number" Name="组件号" DefaultId="D4" />
+        <Dimension DataMember="part_name" Name="组件名" DefaultId="D5" />
+        <Dimension DataMember="on_time" Name="准时状态" DefaultId="D6" />
+        <Measure DataMember="dev_days" Name="偏差天数" SummaryType="Max" DefaultId="D7">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" />
+        </Measure>
+        <Measure DataMember="row_value" Name="金额" SummaryType="Sum" DefaultId="D8">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <FormatRules>
+        <GridItemFormatRule Name="迟到红" DataItem="D6" DataItemApplyTo="D1">
+          <FormatConditionExpression Expression="[D6] = '迟到'">
+            <AppearanceSettings AppearanceType="Red" />
+          </FormatConditionExpression>
+        </GridItemFormatRule>
+        <GridItemFormatRule Name="准时绿" DataItem="D6" DataItemApplyTo="D1">
+          <FormatConditionExpression Expression="[D6] = '准时'">
+            <AppearanceSettings AppearanceType="PaleGreen" />
+          </FormatConditionExpression>
+        </GridItemFormatRule>
+      </FormatRules>
+      <GridOptions ColumnWidthMode="Manual" />
+      <GridColumns>
+        <GridDimensionColumn Name="应交日期" Weight="65"><Dimension DefaultId="D1" /></GridDimensionColumn>
+        <GridDimensionColumn Name="供应商" Weight="150"><Dimension DefaultId="D2" /></GridDimensionColumn>
+        <GridDimensionColumn Name="订单号" Weight="55"><Dimension DefaultId="D3" /></GridDimensionColumn>
+        <GridDimensionColumn Name="组件号" Weight="70"><Dimension DefaultId="D4" /></GridDimensionColumn>
+        <GridDimensionColumn Name="组件名" Weight="150"><Dimension DefaultId="D5" /></GridDimensionColumn>
+        <GridDimensionColumn Name="准时状态" Weight="50"><Dimension DefaultId="D6" /></GridDimensionColumn>
+        <GridMeasureColumn Name="偏差天数" Weight="50"><Measure DefaultId="D7" /></GridMeasureColumn>
+        <GridMeasureColumn Name="金额(¥)" Weight="70"><Measure DefaultId="D8" /></GridMeasureColumn>
+      </GridColumns>
+    </Grid>
+  </Items>
+  <LayoutTree>
+    <LayoutGroup Orientation="Vertical">
+      <LayoutGroup Orientation="Horizontal" Weight="0.12">
+        <LayoutItem DashboardItem="cardDashboardItem1" Weight="0.33" />
+        <LayoutItem DashboardItem="cardDashboardItem2" Weight="0.33" />
+        <LayoutItem DashboardItem="cardDashboardItem3" Weight="0.34" />
+      </LayoutGroup>
+      <LayoutItem DashboardItem="gridDashboardItem1" Weight="0.34" />
+      <LayoutItem DashboardItem="gridDashboardItem2" Weight="0.54" />
+    </LayoutGroup>
+  </LayoutTree>
+</Dashboard>
