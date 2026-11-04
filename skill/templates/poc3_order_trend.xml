@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Dashboard CurrencyCulture="chr-US">
+  <Title Text="Agent 创建 - 订单流入月度趋势" Alignment="Left" />
+  <DataSources>
+    <SqlDataSource Name="Sales" ComponentName="sqlDataSource1">
+      <Connection Name="connection" ProviderKey="Postgres">
+        <Parameters>
+          <Parameter Name="server" Value="localhost" />
+          <Parameter Name="database" Value="BusinessIntelligence" />
+          <Parameter Name="read only" Value="1" />
+          <Parameter Name="Port" Value="5432" />
+        </Parameters>
+      </Connection>
+      <Query Type="SelectQuery" Name="Order inflow">
+        <Tables>
+          <Table Name="bi.order_inflow" Alias="Order inflow" />
+        </Tables>
+        <Columns>
+          <Column Table="Order inflow" Name="order_inflow_date" />
+          <Column Table="Order inflow" Name="total_value_change" />
+        </Columns>
+      </Query>
+    </SqlDataSource>
+  </DataSources>
+  <Items>
+    <Chart ComponentName="chartDashboardItem1" Name="订单流入月度趋势" DataSource="sqlDataSource1" DataMember="Order inflow">
+      <DataItems>
+        <Dimension DataMember="Order inflow date" DateTimeGroupInterval="Month" DefaultId="DataItem1" />
+        <Measure DataMember="Value" SummaryType="Sum" DefaultId="DataItem2">
+          <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Arguments>
+        <Argument DefaultId="DataItem1" />
+      </Arguments>
+      <Panes>
+        <Pane Name="Pane 1">
+          <AxisY Title="订单金额">
+            <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+          </AxisY>
+          <Series>
+            <Simple SeriesType="Spline">
+              <Value DefaultId="DataItem2" />
+            </Simple>
+          </Series>
+        </Pane>
+      </Panes>
+    </Chart>
+  </Items>
+  <LayoutTree>
+    <LayoutGroup Orientation="Vertical">
+      <LayoutItem DashboardItem="chartDashboardItem1" Weight="1" />
+    </LayoutGroup>
+  </LayoutTree>
+</Dashboard>
