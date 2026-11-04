@@ -1,4 +1,4 @@
-// BI API 客户端(自包含版):登录/导入/列表/B方案就地保存/备份/删除/体检
+﻿// BI API 客户端(自包含版):登录/导入/列表/B方案就地保存/备份/删除/体检
 // 配置:同目录 bi_config.env——每台机器的 BI 地址/端口/公司号/账号都不一样,
 //       首次使用必须问用户,然后: node bi_api.js config <地址> <公司号> <用户名> <密码>
 // 依赖:同目录先执行 npm install(装 undici)
@@ -168,7 +168,7 @@ async function main(argv) {
       'BI_PASSWORD=' + pwd,
       '',
       '# 可选:BI 服务器日志目录(verify 命令用;BI 不在本机就保持注释)',
-      '# BI_LOG_DIR=C:\\Program Files\\Monitor ERP System AB\\MONITOR BI Server\\Logs',
+      '# BI_LOG_DIR=<BI安装目录>\\Logs',
       '',
       '# 可选:直连 BI 库导出原始 XML 定义(get-xml / check_bindings 用;各机器端口/账号/密码不同,用到时向用户或其 IT 要,取消注释逐项填)',
       '# PG_PSQL=C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe',
