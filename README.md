@@ -14,7 +14,15 @@ A community plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepsee
 
 ## 安装 / Install
 
-从 [Releases](../../releases) 下载 `monitor-bi-dsh-<version>.tgz`,然后:
+**方式一(最简,包已发布到 npm)**:
+
+```
+dsh plugin --profile desktop add monitor-bi-dsh@0.4.1
+```
+
+(dsh 会自动从 npm 注册表拉取;npm 用户名即发布者。)
+
+**方式二(从 GitHub Release 下载 tgz)**:从 [Releases](../../releases) 下载 `monitor-bi-dsh-<version>.tgz`,然后:
 
 ```
 dsh plugin --profile desktop add "/绝对路径/monitor-bi-dsh-0.4.0.tgz"
