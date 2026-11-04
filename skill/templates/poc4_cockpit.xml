@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Dashboard CurrencyCulture="chr-US">
+  <Title Text="Agent 创建 - 销售订单驾驶舱" Alignment="Left" />
+  <DataSources>
+    <SqlDataSource Name="Sales" ComponentName="sqlDataSource1">
+      <Connection Name="connection" ProviderKey="Postgres">
+        <Parameters>
+          <Parameter Name="server" Value="localhost" />
+          <Parameter Name="database" Value="BusinessIntelligence" />
+          <Parameter Name="read only" Value="1" />
+          <Parameter Name="Port" Value="5432" />
+        </Parameters>
+      </Connection>
+      <Query Type="SelectQuery" Name="Order inflow">
+        <Tables>
+          <Table Name="bi.order_inflow" Alias="Order inflow" />
+        </Tables>
+        <Columns>
+          <Column Table="Order inflow" Name="order_inflow_date" />
+          <Column Table="Order inflow" Name="total_value_change" />
+        </Columns>
+      </Query>
+    </SqlDataSource>
+  </DataSources>
+  <Items>
+    <DateFilter ComponentName="dateFilterDashboardItem1" Name="日期范围" DataSource="sqlDataSource1" DataMember="Order inflow" ArrangementMode="Vertical">
+      <DataItems>
+        <Dimension DataMember="Order inflow date" DateTimeGroupInterval="DayMonthYear" DefaultId="DataItem0" />
+      </DataItems>
+      <Dimension DefaultId="DataItem0" />
+      <DateTimePeriods>
+        <DateTimePeriod Name="This year"><StartLimit><FlowDateTimePeriodLimit /></StartLimit><EndLimit><FlowDateTimePeriodLimit Offset="1" /></EndLimit></DateTimePeriod>
+        <DateTimePeriod Name="Last year"><StartLimit><FlowDateTimePeriodLimit /></StartLimit><EndLimit><FlowDateTimePeriodLimit Offset="-1" /></EndLimit></DateTimePeriod>
+        <DateTimePeriod Name="This month"><StartLimit><FlowDateTimePeriodLimit Interval="Month" /></StartLimit><EndLimit><FlowDateTimePeriodLimit Interval="Month" Offset="1" /></EndLimit></DateTimePeriod>
+        <DateTimePeriod Name="Last 12 months"><StartLimit><FlowDateTimePeriodLimit Interval="Month" Offset="-12" /></StartLimit><EndLimit><FlowDateTimePeriodLimit Interval="Month" /></EndLimit></DateTimePeriod>
+      </DateTimePeriods>
+    </DateFilter>
+    <ComboBox ComponentName="comboBoxDashboardItem1" Name="客户筛选" DataSource="sqlDataSource1" DataMember="Order inflow" ComboBoxType="Checked">
+      <DataItems>
+        <Dimension DataMember="Customer name" DefaultId="DataItem0" />
+      </DataItems>
+      <FilterDimensions>
+        <Dimension DefaultId="DataItem0" />
+      </FilterDimensions>
+    </ComboBox>
+    <Card ComponentName="cardDashboardItem1" Name="订单总金额" ShowCaption="false" DataSource="sqlDataSource1" DataMember="Order inflow">
+      <DataItems>
+        <Dimension DataMember="Order inflow date" DateTimeGroupInterval="MonthYear" DefaultId="DataItem0" />
+        <Measure DataMember="Value" SummaryType="Sum" DefaultId="DataItem2">
+          <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <HiddenDimensions>
+        <Dimension DefaultId="DataItem0" />
+      </HiddenDimensions>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Card ComponentName="cardDashboardItem2" Name="订单行数" ShowCaption="false" DataSource="sqlDataSource1" DataMember="Order inflow">
+      <DataItems>
+        <Dimension DataMember="Order inflow date" DateTimeGroupInterval="MonthYear" DefaultId="DataItem0" />
+        <Measure DataMember="Order number" SummaryType="Count" DefaultId="DataItem2">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <HiddenDimensions>
+        <Dimension DefaultId="DataItem0" />
+      </HiddenDimensions>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Card ComponentName="cardDashboardItem3" Name="下单客户数" ShowCaption="false" DataSource="sqlDataSource1" DataMember="Order inflow">
+      <DataItems>
+        <Dimension DataMember="Order inflow date" DateTimeGroupInterval="MonthYear" DefaultId="DataItem0" />
+        <Measure DataMember="Customer name" SummaryType="CountDistinct" DefaultId="DataItem2">
+          <NumericFormat FormatType="Number" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <HiddenDimensions>
+        <Dimension DefaultId="DataItem0" />
+      </HiddenDimensions>
+      <Card>
+        <ActualValue DefaultId="DataItem2" />
+        <AbsoluteVariationNumericFormat /><PercentVariationNumericFormat /><PercentOfTargetNumericFormat />
+        <LayoutTemplate MinWidth="100" Type="Lightweight">
+          <MainValue Visible="true" ValueType="ActualValue" DimensionIndex="0" />
+          <SubValue Visible="true" ValueType="Title" DimensionIndex="0" />
+          <BottomValue Visible="true" ValueType="Subtitle" DimensionIndex="0" />
+          <DeltaIndicator Visible="false" /><Sparkline Visible="false" />
+        </LayoutTemplate>
+      </Card>
+    </Card>
+    <Chart ComponentName="chartDashboardItem1" Name="月度订单趋势" DataSource="sqlDataSource1" DataMember="Order inflow">
+      <DataItems>
+        <Dimension DataMember="Order inflow date" DateTimeGroupInterval="Month" DefaultId="DataItem1" />
+        <Measure DataMember="Value" SummaryType="Sum" DefaultId="DataItem2">
+          <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Arguments>
+        <Argument DefaultId="DataItem1" />
+      </Arguments>
+      <Panes>
+        <Pane Name="Pane 1">
+          <AxisY Title="订单金额">
+            <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+          </AxisY>
+          <Series>
+            <Simple SeriesType="Bar">
+              <Value DefaultId="DataItem2" />
+            </Simple>
+          </Series>
+        </Pane>
+      </Panes>
+    </Chart>
+    <Pie ComponentName="pieDashboardItem1" Name="客户订单占比" DataSource="sqlDataSource1" DataMember="Order inflow" PieType="Donut" ShowPieCaptions="false">
+      <DataItems>
+        <Dimension DataMember="Customer name" SortOrder="Descending" SortByMeasure="DataItem2" DefaultId="DataItem1" />
+        <Measure DataMember="Value" SummaryType="Sum" DefaultId="DataItem2">
+          <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <Arguments>
+        <Argument DefaultId="DataItem1" />
+      </Arguments>
+      <Values>
+        <Value DefaultId="DataItem2" />
+      </Values>
+    </Pie>
+    <Grid ComponentName="gridDashboardItem1" Name="订单明细" DataSource="sqlDataSource1" DataMember="Order inflow">
+      <DataItems>
+        <Dimension DataMember="Order inflow date" DateTimeGroupInterval="DayMonthYear" DefaultId="DataItem1" />
+        <Dimension DataMember="Customer name" DefaultId="DataItem2" />
+        <Dimension DataMember="Order number" DefaultId="DataItem3" />
+        <Dimension DataMember="Order entity" DefaultId="DataItem4" />
+        <Dimension DataMember="Customer order status name" DefaultId="DataItem5" />
+        <Measure DataMember="Value" SummaryType="Sum" DefaultId="DataItem6">
+          <NumericFormat FormatType="Currency" Precision="0" Unit="Ones" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <FormatRules>
+        <GridItemFormatRule Name="金额数据条" DataItem="DataItem6" DataItemApplyTo="DataItem6">
+          <FormatConditionBar>
+            <NegativeStyleSettings PredefinedColor="PaleRed" />
+            <StyleSettings PredefinedColor="Blue" />
+            <BarOptions />
+          </FormatConditionBar>
+        </GridItemFormatRule>
+      </FormatRules>
+      <GridColumns>
+        <GridDimensionColumn Name="日期" Weight="60"><Dimension DefaultId="DataItem1" /></GridDimensionColumn>
+        <GridDimensionColumn Name="客户" Weight="90"><Dimension DefaultId="DataItem2" /></GridDimensionColumn>
+        <GridDimensionColumn Name="订单号" Weight="60"><Dimension DefaultId="DataItem3" /></GridDimensionColumn>
+        <GridDimensionColumn Name="订单实体" Weight="55"><Dimension DefaultId="DataItem4" /></GridDimensionColumn>
+        <GridDimensionColumn Name="状态" Weight="55"><Dimension DefaultId="DataItem5" /></GridDimensionColumn>
+        <GridMeasureColumn Name="金额" Weight="70"><Measure DefaultId="DataItem6" /></GridMeasureColumn>
+      </GridColumns>
+    </Grid>
+  </Items>
+  <LayoutTree>
+    <LayoutGroup Orientation="Vertical">
+      <LayoutGroup Orientation="Horizontal" Weight="0.13">
+        <LayoutItem DashboardItem="dateFilterDashboardItem1" Weight="0.72" />
+        <LayoutItem DashboardItem="comboBoxDashboardItem1" Weight="0.28" />
+      </LayoutGroup>
+      <LayoutGroup Orientation="Horizontal" Weight="0.14">
+        <LayoutItem DashboardItem="cardDashboardItem1" Weight="0.34" />
+        <LayoutItem DashboardItem="cardDashboardItem2" Weight="0.33" />
+        <LayoutItem DashboardItem="cardDashboardItem3" Weight="0.33" />
+      </LayoutGroup>
+      <LayoutGroup Orientation="Horizontal" Weight="0.34">
+        <LayoutItem DashboardItem="chartDashboardItem1" Weight="0.6" />
+        <LayoutItem DashboardItem="pieDashboardItem1" Weight="0.4" />
+      </LayoutGroup>
+      <LayoutItem DashboardItem="gridDashboardItem1" Weight="0.39" />
+    </LayoutGroup>
+  </LayoutTree>
+</Dashboard>
