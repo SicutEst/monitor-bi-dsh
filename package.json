@@ -1,0 +1,79 @@
+{
+  "name": "monitor-bi-dsh",
+  "version": "0.4.0",
+  "description": "Monitor BI 报表工作室:左侧导航栏独立入口,点进去就是 Harness 原生对话,但该房间只做 Monitor BI 报表(上下文干净、不与日常对话混杂)。自带零安装 CLI 工具链、操作手册、模板、数据字典;首次使用自动询问连接信息。A clean, sidebar-entry BI-only room for DeepSeek Harness with bundled tools, manual, templates and dictionary.",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "monitor",
+    "bi",
+    "dashboard",
+    "report"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "cordis.patch.yml",
+    "lib",
+    "skill"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "prepare": "node scripts/prepare-skill.mjs",
+    "prepack": "node build.mjs && node scripts/prepare-skill.mjs"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.2.0-rc.2 || ^0.2.1-rc.2",
+    "@deepseek-ai/dsh-typert-protocol": "^0.2.0-rc.2 || ^0.2.1-rc.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    }
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml",
+      "tags": [
+        "报表",
+        "BI",
+        "工具",
+        "工作区"
+      ]
+    },
+    "meta": {
+      "title": "Monitor BI 报表工作室",
+      "description": "左侧导航独立入口;房间里是原生对话但只做 Monitor BI 报表。自带工具链/手册/模板/字典,首次使用自动询问连接信息。"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-api-gateway",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    }
+  },
+  "author": {
+    "name": "monitor-bi-dsh contributors"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
