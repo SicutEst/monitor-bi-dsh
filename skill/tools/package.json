@@ -1,0 +1,9 @@
+{
+  "name": "monitor-bi-builder-tools",
+  "version": "1.0.0",
+  "description": "Monitor BI API tools for the monitor-bi-builder skill",
+  "type": "commonjs",
+  "dependencies": {
+    "undici": "^7.0.0"
+  }
+}
