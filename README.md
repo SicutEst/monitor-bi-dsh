@@ -39,7 +39,7 @@ npm pack           # 自动构建 lib/ 并为 skill/tools 装好 undici,产出 t
 ## 致谢与声明 / Credits & Disclaimer
 
 - 机制参考了社区插件 qiaomu-rss-dsh 与 dsh-context-structurer 的公开做法(本文全部代码为独立重写,MIT)。
-- **本插件为社区作品,与 Monitor ERP System AB 及 DeepSeek 均无关联,未获其背书或支持。** "Monitor"、"Monitor ERP"、"Monitor BI" 是 Monitor ERP System AB 的产品/商标,"DeepSeek Harness"、"DSH" 是 DeepSeek 的产品/商标,此处仅作兼容性说明。
+- **本插件为个人社区作品,非官方产品,与所用产品的开发商均无关联,未获其背书或支持。** 文中出现的产名仅为兼容性描述,相关商标归各自权利人所有。
 - 本插件不包含任何上述厂商的代码或专有资料;它只通过 Monitor BI 自带的网页接口工作,等同于一个浏览器会话。
 - 连接信息只保存在本机插件目录的 `skill/tools/bi_config.env`,不上传、不外发。再分发本仓库/安装包前请删除该文件、`session.json` 与 `skill/work/`。
 
