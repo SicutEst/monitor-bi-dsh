@@ -1,0 +1,9 @@
+node_modules/
+*.tgz
+lib/
+skill/tools/node_modules/
+skill/tools/bi_config.env
+skill/tools/session.json
+skill/work/
+skill/tools/backups/
+skill/tools/last_import.json
