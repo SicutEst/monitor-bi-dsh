@@ -1,0 +1,4 @@
+# monitor-bi-dsh 组合包层:本行由 bundle 独占持有(用户 patch 不要重复插入同 id)
+- insert:
+  - id: monitor-bi
+    name: monitor-bi-dsh
