@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Dashboard CurrencyCulture="chr-US">
+  <Title Text="Agent 创建 - 库存余额表" Alignment="Left" />
+  <DataSources>
+    <SqlDataSource Name="Stock" ComponentName="sqlDataSource1">
+      <Connection Name="connection" ProviderKey="Postgres">
+        <Parameters>
+          <Parameter Name="server" Value="localhost" />
+          <Parameter Name="database" Value="BusinessIntelligence" />
+          <Parameter Name="read only" Value="1" />
+          <Parameter Name="Port" Value="5432" />
+        </Parameters>
+      </Connection>
+      <Query Type="SelectQuery" Name="Stock balance">
+        <Tables>
+          <Table Name="bi.stock_balance" Alias="Stock balance" />
+        </Tables>
+        <Columns>
+          <Column Table="Stock balance" Name="part_name" />
+          <Column Table="Stock balance" Name="part_number" />
+          <Column Table="Stock balance" Name="balance" />
+          <Column Table="Stock balance" Name="available_balance" />
+        </Columns>
+      </Query>
+    </SqlDataSource>
+  </DataSources>
+  <Items>
+    <Grid ComponentName="gridDashboardItem1" Name="Stock by part" DataSource="sqlDataSource1" DataMember="Stock balance">
+      <DataItems>
+        <Dimension DataMember="Part name" DefaultId="DataItem1" />
+        <Dimension DataMember="Part number" DefaultId="DataItem2" />
+        <Measure DataMember="Balance" SummaryType="Sum" DefaultId="DataItem3">
+          <NumericFormat FormatType="Number" IncludeGroupSeparator="true" />
+        </Measure>
+        <Measure DataMember="Available balance" SummaryType="Sum" DefaultId="DataItem4">
+          <NumericFormat FormatType="Number" IncludeGroupSeparator="true" />
+        </Measure>
+      </DataItems>
+      <GridColumns>
+        <GridDimensionColumn Weight="45"><Dimension DefaultId="DataItem1" /></GridDimensionColumn>
+        <GridDimensionColumn Weight="25"><Dimension DefaultId="DataItem2" /></GridDimensionColumn>
+        <GridMeasureColumn Weight="15"><Measure DefaultId="DataItem3" /></GridMeasureColumn>
+        <GridMeasureColumn Weight="15"><Measure DefaultId="DataItem4" /></GridMeasureColumn>
+      </GridColumns>
+    </Grid>
+  </Items>
+  <LayoutTree>
+    <LayoutGroup Orientation="Vertical">
+      <LayoutItem DashboardItem="gridDashboardItem1" Weight="1" />
+    </LayoutGroup>
+  </LayoutTree>
+</Dashboard>
