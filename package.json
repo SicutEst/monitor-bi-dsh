@@ -1,6 +1,6 @@
 {
   "name": "monitor-bi-dsh",
-  "version": "0.4.6",
+  "version": "0.4.9",
   "description": "Monitor BI 报表工作室:左侧导航栏独立入口,点进去就是 Harness 原生对话,但该房间只做 Monitor BI 报表(上下文干净、不与日常对话混杂)。自带零安装 CLI 工具链、操作手册、模板、数据字典;首次使用自动询问连接信息。A clean, sidebar-entry BI-only room for DeepSeek Harness with bundled tools, manual, templates and dictionary.",
   "keywords": [
     "dsh",
