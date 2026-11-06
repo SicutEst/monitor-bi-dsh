@@ -130,7 +130,8 @@ BI 地址/端口、公司号、账号密码**每台机器都不一样**(端口�
 | 登录403 | 账号无 BI 权限,找管理员开通 |
 | data items do not exist | 标准查询=绑定没用显示名;**自定义SQL=绑定没用SQL别名原样** |
 | operator does not exist: interval <= integer | 日期相减没做 ::date 转换(时间戳列相减得了interval)→两边加 ::date |
-| 导入500 NullReference(格式规则) | **图标名拼错**(例:DirectionalGreenUpArrow❌→DirectionalGreenArrowUp✅,命名不统一)→图标名必须照系统盘导出样本 grep(如 dash_Manufacturing_overview.xml),别凭记忆写 |
+| 导入500 NullReference(格式规则) | **图标名拼错**——已验证全集(2026-11-06从前端bundle挖出40种,箭头族拼写不统一):DirectionalRedDownArrow/**DirectionalGreenArrowUp**(Green后多Arrow!)/DirectionalGreenTriangleUp/DirectionalGrayArrowUp/DirectionalYellowUpInclineArrow等;圆底族=IndicatorCircledGreenCheck/IndicatorCircledRedCross/IndicatorCircledYellowExclamation(白圆底,红底上更清晰);色块族=ShapeRedCircle等。**禁止凭记忆写,从前端bundle或系统盘导出grep** |
+
 | 导入后组件全断/错位 | 在中文语言下导入了→改英文重导 |
 | 盘变成52字节空白 | POST 了带壳对象→只 POST .Dashboard 裸对象 |
 | 表里日期只显示年份 | 缺 DateTimeGroupInterval="DayMonthYear" |
