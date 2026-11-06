@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>IQC 来料检看板 · 元素博览版</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#f0f2f5; font-family:'Segoe UI','Microsoft YaHei',sans-serif; color:#1f2d3d; padding:20px 24px; }
+  .head { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  h1 { font-size:20px; }
+  .head .note { color:#8492a6; font-size:12px; }
+  .search { margin-left:auto; position:relative; }
+  .search input { width:230px; padding:8px 12px 8px 32px; border:1px solid #dfe4ea; border-radius:8px; font-size:13px; outline:none; transition:.2s; }
+  .search input:focus { border-color:#4a90d9; box-shadow:0 0 0 3px rgba(74,144,217,.12); }
+  .search::before { content:'🔍'; position:absolute; left:10px; top:7px; font-size:13px; opacity:.5; }
+  .kpis { display:flex; gap:14px; margin-bottom:16px; }
+  .kpi { flex:1; background:#fff; border-radius:10px; padding:14px 18px; box-shadow:0 1px 4px rgba(0,0,0,.08); position:relative; overflow:hidden; }
+  .kpi::after { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; }
+  .kpi.c1::after { background:#4a90d9; } .kpi.c2::after { background:#27ae60; }
+  .kpi.c3::after { background:#f39c12; } .kpi.c4::after { background:#e74c3c; }
+  .kpi .l { font-size:12px; color:#8492a6; }
+  .kpi .v { font-size:26px; font-weight:700; margin-top:4px; }
+  .kpi .s { font-size:11px; margin-top:3px; color:#8492a6; }
+  .duo { display:flex; gap:14px; margin-bottom:16px; }
+  .card { background:#fff; border-radius:10px; padding:14px 16px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .card h3 { font-size:13px; color:#1f2d3d; margin-bottom:8px; font-weight:600; }
+  #combo { flex:1.6; height:280px; }
+  #gaugeBox { flex:1; display:flex; gap:0; }
+  .gauge { flex:1; height:280px; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.08); font-size:12.5px; }
+  th { background:#fafbfc; color:#8492a6; font-size:11.5px; font-weight:500; padding:9px 10px; text-align:right; border-bottom:1px solid #ebeef5; white-space:nowrap; }
+  th:first-child { text-align:left; } th:nth-child(3), th:nth-child(4) { text-align:left; }
+  td { padding:8px 10px; text-align:right; border-bottom:1px solid #f5f6f8; white-space:nowrap; }
+  td:nth-child(3), td:nth-child(4) { text-align:left; }
+  td:first-child { text-align:left; font-weight:600; }
+  tr:hover td { background:#f7f9fb; }
+  tr.dim td { opacity:.45; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+  .pcat { background:#eaf3fc; color:#2c6fbb; }
+  .pdone { background:#e8f7ee; color:#27ae60; }
+  .pwait { background:#fef5e7; color:#e67e22; }
+  .prej { background:#fdeaea; color:#e74c3c; }
+  .ok { color:#27ae60; font-weight:600; } .bad { color:#e74c3c; font-weight:600; }
+  .count { color:#8492a6; font-size:11px; margin-left:8px; }
+  .footer { color:#a0aec0; font-size:11px; margin-top:10px; }
+  .legend-tip { display:flex; gap:10px; margin-left:10px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>IQC 来料检看板</h1>
+  <span class="note">三天窗口 · 元素博览版(搜索框可直接用,试试输入 WCB 或 19)</span>
+  <div class="search"><input id="q" placeholder="搜索 订单号 / 组件 / 图号…"></div>
+</div>
+
+<div class="kpis">
+  <div class="kpi c1"><div class="l">三天到货批次</div><div class="v" id="k1"></div><div class="s" id="k1s"></div></div>
+  <div class="kpi c2"><div class="l">三天到货数量</div><div class="v" id="k2"></div><div class="s" id="k2s"></div></div>
+  <div class="kpi c3"><div class="l">检验完成率</div><div class="v" id="k3"></div><div class="s" id="k3s">已检 ÷ 应检</div></div>
+  <div class="kpi c4"><div class="l">检验合格率</div><div class="v" id="k4"></div><div class="s" id="k4s">无拒收 ÷ 已检</div></div>
+</div>
+
+<div class="duo">
+  <div class="card" style="flex:1.7"><h3>按分类:到货 vs 已检(柱) · 完成率(线,右轴)</h3><div id="combo"></div></div>
+  <div class="card" style="flex:1"><h3>到货数量结构</h3><div id="donut" style="height:280px"></div></div>
+</div>
+
+<div class="card" style="margin-bottom:14px">
+  <h3>到货明细 <span class="count" id="cnt"></span></h3>
+  <table>
+    <thead><tr><th>采购订单</th><th>类型</th><th>组件号</th><th>组件名称</th><th>图号</th><th>到货日</th><th>应到日</th><th>已到数量</th><th>待检数量</th><th>单位</th><th>分类</th><th>检验状态</th><th>完成率</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
+
+<div class="footer">自包含单文件 · 数据源 bi.iqc_incoming · 三天窗口=到货日期≥今天-2 · 检验完成=已检数≥应检 · 合格=无拒收</div>
+
+<script>
+const DATA = /*__IQC__*/[];
+const fmt = n => Number(n||0).toLocaleString('zh-CN', {maximumFractionDigits:1});
+const catPill = c => `<span class="pill pcat">${c}</span>`;
+const stPill = r => r.await_inspect_qty === 0
+  ? (r.has_reject > 0 ? '<span class="pill prej">有拒收</span>' : '<span class="pill pdone">已检合格</span>')
+  : '<span class="pill pwait">待检</span>';
+const doneQty = r => Number(r.arrived_qty) - Number(r.await_inspect_qty);
+
+// KPI
+const inWin = DATA.filter(r => r.in_three_days === 1);
+const totArr = inWin.reduce((s,r)=>s+Number(r.arrived_qty),0);
+const totDone = inWin.reduce((s,r)=>s+doneQty(r),0);
+const totInspect = inWin.reduce((s,r)=>s+Number(r.arrived_qty),0);
+const doneRows = inWin.filter(r=>r.await_inspect_qty===0 && Number(r.arrived_qty)>0);
+const noReject = doneRows.filter(r=>r.has_reject===0);
+const windowEmpty = inWin.length === 0;
+const base = windowEmpty ? DATA : inWin;
+const bTot = base.reduce((s,r)=>s+Number(r.arrived_qty),0);
+const bDone = base.reduce((s,r)=>s+doneQty(r),0);
+const rate1 = bTot ? Math.round(bDone/bTot*1000)/10 : 100;
+const dRows = base.filter(r=>r.await_inspect_qty===0 && Number(r.arrived_qty)>0);
+const rate2 = dRows.length ? Math.round(dRows.filter(r=>r.has_reject===0).length/dRows.length*1000)/10 : 100;
+document.getElementById('k1').textContent = inWin.length;
+document.getElementById('k1s').textContent = '共 ' + DATA.length + ' 行到货(含3天外)';
+document.getElementById('k2').textContent = fmt(totArr);
+document.getElementById('k2s').textContent = '其中待检 ' + fmt(inWin.reduce((s,r)=>s+Number(r.await_inspect_qty),0));
+document.getElementById('k3').innerHTML = `<span class="${rate1>=90?'ok':rate1<60?'bad':''}">${rate1}%</span>`;
+if (windowEmpty) document.getElementById('k3s').textContent = '三天窗口内无到货,按全部29行计算';
+document.getElementById('k4').innerHTML = `<span class="${rate2>=90?'ok':rate2<60?'bad':''}">${rate2}%</span>`;
+
+// 组合图(柱+线双轴)按分类
+const cats = [...new Set(DATA.map(r=>r.stat_category))];
+const byCat = cats.map(c => {
+  const rows = DATA.filter(r=>r.stat_category===c);
+  return { cat:c, arr:rows.reduce((s,r)=>s+Number(r.arrived_qty),0), done:rows.reduce((s,r)=>s+doneQty(r),0) };
+});
+const rate = byCat.map(x => x.arr ? Math.round(x.done/x.arr*1000)/10 : 100);
+const cc = ['#4a90d9','#27ae60','#f39c12','#8e44ad'];
+echarts.init(document.getElementById('combo')).setOption({
+  tooltip:{trigger:'axis'},
+  legend:{data:['到货数量','已检数量','完成率'],top:0,textStyle:{fontSize:11}},
+  grid:{left:55,right:50,top:30,bottom:26},
+  xAxis:{type:'category',data:cats,axisLabel:{fontSize:12}},
+  yAxis:[
+    {type:'value',name:'数量',splitLine:{lineStyle:{color:'#f2f4f7'}}},
+    {type:'value',max:100,axisLabel:{formatter:'{value}%'},splitLine:{show:false}}
+  ],
+  series:[
+    {name:'到货数量',type:'bar',data:byCat.map(x=>x.arr),itemStyle:{color:'#4a90d9',borderRadius:[5,5,0,0]},barWidth:'28%'},
+    {name:'已检数量',type:'bar',data:byCat.map(x=>x.done),itemStyle:{color:'#27ae60',borderRadius:[5,5,0,0]},barWidth:'28%'},
+    {name:'完成率',type:'line',yAxisIndex:1,data:rate,smooth:true,lineStyle:{color:'#e67e22',width:2.5},itemStyle:{color:'#e67e22'},symbol:'circle',symbolSize:8,label:{show:true,formatter:'{c}%',color:'#e67e22',fontSize:11}}
+  ]
+});
+
+// 环图
+echarts.init(document.getElementById('donut')).setOption({
+  tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
+  series:[{type:'pie',radius:['46%','70%'],
+    data:byCat.map((x,i)=>({name:x.cat,value:Math.round(x.arr*10)/10,itemStyle:{color:cc[i%4]}})),
+    label:{formatter:'{b}\n{d}%',fontSize:11},
+    itemStyle:{borderColor:'#fff',borderWidth:2}}]
+});
+
+// 明细 + 搜索
+let filter = '';
+function render() {
+  const rows = DATA.filter(r => !filter || [r.po_number,r.part_number,r.part_name,r.figure_no,r.order_type,r.stat_category].some(v => (v||'').toLowerCase().includes(filter)));
+  document.getElementById('cnt').textContent = `(${rows.length}/${DATA.length} 行)`;
+  document.getElementById('rows').innerHTML = rows.map(r => {
+    const rateRow = Number(r.arrived_qty) ? Math.round(doneQty(r)/Number(r.arrived_qty)*100) : 100;
+    const tr = `<tr class="${r.in_three_days===1?'':'dim'}"><td>${r.po_number}</td><td>${r.order_type}</td><td>${r.part_number}</td><td>${r.part_name}</td><td>${r.figure_no||'—'}</td><td>${r.arrival_date}</td><td>${r.desired_date}</td><td>${fmt(r.arrived_qty)}</td><td>${r.await_inspect_qty}</td><td>${r.unit||'—'}</td><td>${catPill(r.stat_category)}</td><td>${stPill(r)}</td><td class="${rateRow>=100?'ok':rateRow<50?'bad':''}">${rateRow}%</td></tr>`;
+    return tr;
+  }).join('') || '<tr><td colspan="13" style="text-align:center;color:#a0aec0;padding:20px">没有匹配的行</td></tr>';
+}
+render();
+document.getElementById('q').addEventListener('input', e => { filter = e.target.value.toLowerCase(); render(); });
+</script>
+</body>
+</html>
