@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Dashboard CurrencyCulture="chr-US">
+  <Title Text="库存库龄分析" Alignment="Left" />
+  <DataSources>
+    <SqlDataSource Name="Stock" ComponentName="sqlDataSource1">
+      <Connection Name="connection" ProviderKey="Postgres">
+        <Parameters>
+          <Parameter Name="server" Value="localhost" />
+          <Parameter Name="database" Value="BusinessIntelligence" />
+          <Parameter Name="read only" Value="1" />
+          <Parameter Name="Port" Value="5432" />
+        </Parameters>
+      </Connection>
+      <Query Type="CustomSqlQuery" Name="StockAging"><Sql>SELECT part_number AS 组件编号,
+ life_cycle_state AS 生命周期,
+ balance AS 库存数量,
+ available_balance AS 可用数量,
+ current_date - latest_arrival_date::date AS 库龄天数,
+ CASE WHEN current_date - latest_arrival_date::date &lt;= 90 THEN '0-90天'
+      WHEN current_date - latest_arrival_date::date &lt;= 180 THEN '91-180天'
+      WHEN current_date - latest_arrival_date::date &lt;= 365 THEN '181-365天'
+      ELSE '365天以上' END AS 呆滞分档
+ FROM bi.stock_balance WHERE balance &gt; 0 ORDER BY 库龄天数 DESC</Sql></Query>
+    </SqlDataSource>
+  </DataSources>
+  <Items>
+    <Grid ComponentName="grid1" Name="库存库龄" DataSource="sqlDataSource1" DataMember="StockAging" >
+      <DataItems><Dimension DataMember="组件编号" Name="组件编号" DefaultId="D1"/><Dimension DataMember="生命周期" Name="生命周期" DefaultId="D2"/><Measure DataMember="库存数量" Name="库存数量" DefaultId="D3" SummaryType="Sum"><NumericFormat FormatType="Number" IncludeGroupSeparator="true" /></Measure><Measure DataMember="可用数量" Name="可用数量" DefaultId="D4" SummaryType="Sum"><NumericFormat FormatType="Number" IncludeGroupSeparator="true" /></Measure><Dimension DataMember="库龄天数" Name="库龄天数" DefaultId="D5"/><Dimension DataMember="呆滞分档" Name="呆滞分档" DefaultId="D6"/></DataItems>
+      <GridColumns><GridDimensionColumn Weight="40"><Dimension DefaultId="D1" /></GridDimensionColumn><GridDimensionColumn Weight="30"><Dimension DefaultId="D2" /></GridDimensionColumn><GridMeasureColumn Weight="10"><Measure DefaultId="D3" /></GridMeasureColumn><GridMeasureColumn Weight="10"><Measure DefaultId="D4" /></GridMeasureColumn><GridDimensionColumn Weight="10"><Dimension DefaultId="D5" /></GridDimensionColumn><GridDimensionColumn Weight="15"><Dimension DefaultId="D6" /></GridDimensionColumn></GridColumns>
+      <GridOptions ColumnWidthMode="Manual" />
+    </Grid>
+  </Items>
+  <LayoutTree><LayoutGroup Orientation="Vertical"><LayoutItem DashboardItem="grid1" Weight="1" /></LayoutGroup></LayoutTree>
+</Dashboard>
