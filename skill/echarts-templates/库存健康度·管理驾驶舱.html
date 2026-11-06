@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>库存健康度 · 管理驾驶舱</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; font-family:'Segoe UI','Microsoft YaHei',sans-serif; color:#1f2d3d; max-width:1180px; margin:0 auto; padding:28px 32px; }
+  .hero { display:flex; align-items:baseline; gap:14px; border-bottom:3px solid #1f2d3d; padding-bottom:12px; margin-bottom:6px; }
+  .hero h1 { font-size:24px; letter-spacing:1px; }
+  .hero .verdict { font-size:15px; font-weight:600; }
+  .hero .verdict.ok { color:#27ae60; } .hero .verdict.warn { color:#e67e22; } .hero .verdict.bad { color:#e74c3c; }
+  .date { color:#a0aec0; font-size:12px; text-align:right; margin-bottom:18px; }
+  .lead { display:flex; gap:0; margin-bottom:24px; border:1px solid #ebeef5; border-radius:12px; overflow:hidden; }
+  .lead .cell { flex:1; padding:18px 22px; border-right:1px solid #f2f4f7; }
+  .lead .cell:last-child { border-right:none; }
+  .lead .big { font-size:34px; font-weight:700; line-height:1.1; }
+  .lead .cap { font-size:12px; color:#8492a6; margin-top:4px; }
+  .lead .delta { font-size:12px; margin-top:6px; }
+  .section-title { font-size:15px; font-weight:600; margin:26px 0 12px; display:flex; align-items:center; gap:8px; }
+  .section-title::before { content:''; width:4px; height:16px; background:#4a90d9; border-radius:2px; }
+  .duo { display:flex; gap:22px; }
+  .duo .left { flex:1.2; }
+  .duo .right { flex:1; }
+  .insight { background:#f8f9fb; border-left:4px solid #4a90d9; border-radius:0 8px 8px 0; padding:12px 16px; font-size:13px; line-height:1.7; margin-bottom:10px; }
+  .insight b.red { color:#e74c3c; } .insight b.green { color:#27ae60; }
+  #barChart, #donut, #trend { width:100%; height:260px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:right; color:#8492a6; font-weight:500; padding:8px 10px; border-bottom:2px solid #1f2d3d; font-size:12px; }
+  th:first-child { text-align:left; }
+  td { padding:8px 10px; text-align:right; border-bottom:1px solid #f2f4f7; }
+  td:first-child { text-align:left; font-weight:500; }
+  .pill { display:inline-block; padding:2px 12px; border-radius:999px; font-size:12px; font-weight:600; }
+  .p1 { background:#27ae60; color:#fff; } .p2 { background:#f39c12; color:#fff; }
+  .p3 { background:#e74c3c; color:#fff; } .p4 { background:#8e44ad; color:#fff; }
+  .tag-top { background:#e74c3c; color:#fff; font-size:11px; padding:2px 8px; border-radius:4px; margin-left:6px; }
+  .footer { margin-top:20px; color:#c0c8d0; font-size:11px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>库存健康度</h1>
+  <span class="verdict" id="verdict"></span>
+</div>
+<div class="date">数据截至今日 06:00 同步 ｜ 一车间 · 全部在库料</div>
+
+<div class="lead">
+  <div class="cell"><div class="big" id="kTotal"></div><div class="cap">在库总数量</div></div>
+  <div class="cell"><div class="big" id="kSku"></div><div class="cap">在库料种(SKU)</div></div>
+  <div class="cell"><div class="big" style="color:#e74c3c" id="kAged"></div><div class="cap">超 90 天库龄数量</div><div class="delta" id="kAgedPct"></div></div>
+  <div class="cell"><div class="big" id="kFresh"></div><div class="cap">健康占比(≤90天)</div><div class="delta" style="color:#27ae60">流动性强</div></div>
+</div>
+
+<div class="section-title">发生了什么(结论先行)</div>
+<div class="insight" id="insight1"></div>
+<div class="insight" id="insight2"></div>
+
+<div class="section-title">证据</div>
+<div class="duo">
+  <div class="left"><div id="barChart"></div></div>
+  <div class="right"><div id="donut"></div></div>
+</div>
+
+<div class="section-title">呆滞风险明细(库龄倒序,前 15 名)<span class="tag-top" id="topTag" style="display:none">滞留预警</span></div>
+<table>
+  <thead><tr><th>组件编号</th><th>库存数量</th><th>可用数量</th><th>库龄天数</th><th>分档</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<div class="footer">自包含单文件 · 数据源 bi.stock_balance · ECharts 产线 95 冲刺版</div>
+
+<script>
+const DATA = /*__AGING__*/[];
+const fmt = n => Number(n).toLocaleString('zh-CN', {maximumFractionDigits:1});
+const totalQty = DATA.reduce((s,r)=>s+Number(r.balance),0);
+const B = ['0-90天','91-180天','181-365天','365天以上'];
+const qtyBy = b => DATA.filter(r=>r.bucket===b).reduce((s,r)=>s+Number(r.balance),0);
+const aged = qtyBy('91-180天') + qtyBy('181-365天') + qtyBy('365天以上');
+const agedPct = Math.round(aged/totalQty*1000)/10;
+const healthyPct = Math.round((100-agedPct)*10)/10;
+
+// 结论行
+const v = document.getElementById('verdict');
+if (agedPct < 10) { v.textContent = '✓ 库存整体健康'; v.className='verdict ok'; }
+else if (agedPct < 25) { v.textContent = '⚠ 部分物料开始滞留'; v.className='verdict warn'; }
+else { v.textContent = '✕ 滞留风险显著,建议处理'; v.className='verdict bad'; }
+
+document.getElementById('kTotal').textContent = fmt(totalQty);
+document.getElementById('kSku').textContent = new Set(DATA.map(r=>r.part_number)).size;
+document.getElementById('kAged').textContent = fmt(aged);
+document.getElementById('kAgedPct').innerHTML = '占总库存 <b class="red">'+agedPct+'%</b>';
+document.getElementById('kFresh').textContent = healthyPct + '%';
+
+// 结论句
+const top3 = [...DATA].sort((a,b)=>b.aging_days-a.aging_days).slice(0,3);
+document.getElementById('insight1').innerHTML =
+  `库龄结构: <b class="green">${B[0]}</b> 占绝对主体(${fmt(qtyBy(B[0]))},占${Math.round(qtyBy(B[0])/totalQty*100)}%);`+
+  `滞留侧共 <b class="red">${fmt(aged)}</b>(${agedPct}%),其中 <b>${B[1]}</b> ${fmt(qtyBy(B[1]))} 为主。`;
+document.getElementById('insight2').innerHTML =
+  `最需关注: <b class="red">${top3.map(r=>r.part_number+'('+r.aging_days+'天)').join('、')}</b> —— `+
+  `建议核对 ${top3[0].part_number} 的 ${fmt(top3[0].balance)} 在库是否仍被订单消耗,必要时优先处理。`;
+
+// 明细表(前15)
+document.getElementById('rows').innerHTML = top3.concat([...DATA].sort((a,b)=>b.aging_days-a.aging_days).slice(3,15)).map(r =>
+  `<tr><td>${r.part_number}</td><td>${fmt(r.balance)}</td><td>${fmt(r.available_balance)}</td><td class="${r.aging_days>180?'':'num'}" style="${r.aging_days>180?'color:#8e44ad;font-weight:600':''}">${r.aging_days}</td><td><span class="pill ${({'0-90天':'p1','91-180天':'p2','181-365天':'p3','365天以上':'p4'})[r.bucket]}">${r.bucket}</span></td></tr>`
+).join('');
+
+// 柱图:分档数量
+const byQty = B.map(qtyBy);
+echarts.init(document.getElementById('barChart')).setOption({
+  grid:{left:70,right:16,top:34,bottom:26},
+  tooltip:{trigger:'axis'},
+  xAxis:{type:'category',data:B,axisLabel:{fontSize:11,color:'#8492a6'},axisLine:{lineStyle:{color:'#dfe4ea'}}},
+  yAxis:{type:'value',splitLine:{lineStyle:{color:'#f2f4f7'}},axisLabel:{formatter:v=>v>=1000?(v/1000)+'K':v,color:'#8492a6'}},
+  series:[{type:'bar',data:byQty.map((v,i)=>({value:v,itemStyle:{color:['#27ae60','#f39c12','#e74c3c','#8e44ad'][i],borderRadius:[6,6,0,0]}})),barWidth:'42%',label:{show:true,position:'top',formatter:p=>fmt(p.value),color:'#1f2d3d',fontSize:11}}]
+});
+
+// 环图:数量结构
+echarts.init(document.getElementById('donut')).setOption({
+  tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
+  series:[{type:'pie',radius:['48%','72%'],center:['50%','50%'],
+    data:B.map((b,i)=>({name:b,value:Math.round(qtyBy(b)*10)/10,itemStyle:{color:['#27ae60','#f39c12','#e74c3c','#8e44ad'][i]}})),
+    label:{formatter:'{b}\n{d}%',fontSize:11,color:'#1f2d3d'},
+    itemStyle:{borderColor:'#fff',borderWidth:2}}]
+});
+</script>
+</body>
+</html>
