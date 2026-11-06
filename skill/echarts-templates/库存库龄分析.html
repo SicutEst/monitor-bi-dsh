@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>库存库龄分析</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#f0f2f5; font-family:'Segoe UI','Microsoft YaHei',sans-serif; color:#333; padding:20px; }
+  h1 { font-size:20px; color:#1f2d3d; margin-bottom:4px; }
+  .sub { color:#8492a6; font-size:12px; margin-bottom:16px; }
+  .kpi-row { display:flex; gap:16px; margin-bottom:16px; }
+  .kpi { flex:1; background:#fff; border-radius:10px; padding:16px 20px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .kpi .label { font-size:12px; color:#8492a6; margin-bottom:6px; }
+  .kpi .value { font-size:28px; font-weight:600; }
+  .kpi .value small { font-size:13px; color:#8492a6; font-weight:400; }
+  .grid { display:flex; gap:16px; }
+  .card { background:#fff; border-radius:10px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .card h3 { font-size:14px; color:#1f2d3d; margin-bottom:10px; }
+  #bucketChart { width:420px; height:300px; }
+  #trendBox { flex:1; }
+  #trendChart { width:100%; height:300px; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  th { background:#fafbfc; color:#8492a6; font-size:12px; font-weight:500; text-align:right; padding:10px 14px; border-bottom:1px solid #ebeef5; }
+  th:first-child { text-align:left; }
+  td { padding:9px 14px; font-size:13px; text-align:right; border-bottom:1px solid #f2f4f7; }
+  td:first-child { text-align:left; font-weight:500; }
+  tr:hover td { background:#f7f9fb; }
+  .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:500; line-height:1.4; }
+  .pill.b1 { background:#e8f7ee; color:#27ae60; }
+  .pill.b2 { background:#fef5e7; color:#e67e22; }
+  .pill.b3 { background:#fdeaea; color:#e74c3c; }
+  .pill.b4 { background:#f4ecfb; color:#8e44ad; }
+  .num-red { color:#e74c3c; font-weight:600; }
+  .num-green { color:#27ae60; }
+  .footer { margin-top:12px; color:#a0aec0; font-size:11px; }
+</style>
+</head>
+<body>
+<h1>库存库龄分析</h1>
+<div class="sub">数据来源:bi.stock_balance ｜ 生成:ECharts 漂亮版产线</div>
+
+<div class="kpi-row" id="kpis"></div>
+
+<div class="grid" style="margin-bottom:16px;">
+  <div class="card"><h3>呆滞分档(按数量)</h3><div id="bucketChart"></div></div>
+  <div class="card" id="trendBox"><h3>库龄分布趋势感(数量累计占比)</h3><div id="trendChart"></div></div>
+</div>
+
+<table>
+  <thead><tr><th>组件编号</th><th>生命周期</th><th>库存数量</th><th>可用数量</th><th>库龄天数</th><th>呆滞分档</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div class="footer">本页面为自包含文件:图表数据已内置,双击即可打开,无需连接任何服务器。</div>
+
+<script>
+const DATA = /*__AGING__*/[];
+const byBucket = buckets.map(b => DATA.filter(r=>r.bucket===b).reduce((s,r)=>s+r.balance,0));
+const skuByBucket = buckets.map(b => DATA.filter(r=>r.bucket===b).length);
+echarts.init(document.getElementById('bucketChart')).setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:60,right:20,top:30,bottom:30},
+  xAxis:{type:'category',data:buckets,axisLabel:{fontSize:11}},
+  yAxis:{type:'value',axisLabel:{formatter:v=>v>=1000?(v/1000)+'K':v}},
+  series:[
+    {name:'库存数量',type:'bar',data:byBucket,itemStyle:{borderRadius:[6,6,0,0],color:'#4a90d9'},barWidth:'40%'},
+    {name:'料种数',type:'line',data:skuByBucket,yAxisIndex:0,lineStyle:{type:'dashed',color:'#27ae60'},itemStyle:{color:'#27ae60'},symbolSize:6}
+  ]
+});
+
+// 累计占比
+const cum = []; let acc = 0;
+byBucket.forEach(v => { acc += v; cum.push(Math.round(acc/totalQty*1000)/10); });
+echarts.init(document.getElementById('trendChart')).setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:50,right:30,top:30,bottom:30},
+  xAxis:{type:'category',data:buckets,axisLabel:{fontSize:11}},
+  yAxis:{type:'value',max:100,axisLabel:{formatter:'{value}%'}},
+  series:[{name:'累计占比',type:'line',data:cum,smooth:true,
+    areaStyle:{opacity:.25,color:'#8e44ad'},lineStyle:{color:'#8e44ad',width:2},
+    itemStyle:{color:'#8e44ad'},label:{show:true,formatter:'{c}%'},symbolSize:7}]
+});
+</script>
+</body>
+</html>
