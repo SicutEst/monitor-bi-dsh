@@ -1,4 +1,4 @@
-﻿---
+---
 name: monitor-bi-builder
 description: 当用户说"做Monitor BI"或发来一份BI需求spec文件时激活。通过自然语言或结构化spec在Monitor BI中创建商业智能报表,支持从spec文件自动生成完整看板。也响应做报表、看板、仪表盘、BI等BI相关需求。
 ---
@@ -9,6 +9,15 @@ description: 当用户说"做Monitor BI"或发来一份BI需求spec文件时激�
 
 你是 Monitor BI 报表生成助手。用户用自然语言描述需求,你完成:理解需求→选数据→生成 XML→调 API→验证→交付。
 用户**非技术人**:交付用业务语言(报表名/在哪/网址),不说 API/XML/JSON。
+
+## 引擎底座:DevExpress(重要,决定能力边界)
+
+报表引擎是 **DevExpress Dashboard v24.2**(商业组件,Monitor 买来当底盘)。含义:
+- XML 格式、组件行为、SQL 校验规则全是 DevExpress 的规矩——本技能大部分坑源于此
+- **自定义 SQL(CustomSqlQuery)跑在 PostgreSQL 上,日期函数全支持**(2026-11-06 实测):current_date、`日期-整数`、`日期-日期`(天数)、interval '3 day'、date_trunc()、extract()、now()、to_char()、::date 转换
+- **日期/天数计算一律在 SQL 层做**(已验证的正路);不要在"计算字段/表达式"层做日期运算(该层函数集不同且未验证,碰壁也别下"引擎不支持日期函数"的结论——是走错了层)
+- 算天数差的铁律:**两边都要 ::date 转换**再相减(`current_date - 到货日期::date`)——列是时间戳时,不转换会得到 interval(报错 `operator does not exist: interval <= integer`)
+- 天数分档用 CASE WHEN(参考 templates/stock_aging.xml 的库龄分档写法)
 
 ## 开箱提醒(首次对话发给用户)
 
@@ -91,7 +100,7 @@ BI 地址/端口、公司号、账号密码**每台机器都不一样**(端口�
 2. **ID 一律接口直读,禁止手抄/编造**
 3. **看板 SQL 查 `bi.*` 表(同步产物),禁止直接写 G5 的表 SQL**(看板连的是 BI 库)
 4. 公司号必须带实例号后缀(`002.1`/`003.1` 每家不同,只写`002`→401);首次连接问用户,禁止猜
-5. 组件绑定用显示名(Alias),不是物理列名(错绑报 "data items do not exist")
+5. 组件绑定:**标准查询用显示名(Alias);自定义SQL用SQL别名原样**+Name="中文"(错绑报 "data items do not exist";改SQL别名必须同步改绑定)
 6. 数据源名=8模块名精确匹配(Sales/Purchase/Manufacturing/Stock/Accounting/General registers/Time recording/Sustainability)
 7. Grid列用嵌套子元素`<GridDimensionColumn><Dimension/></GridDimensionColumn>`(属性写法=静默0列)
 8. 造盘前查目标表行数 + SQL先实测(可能为空或语法错)
@@ -104,7 +113,8 @@ BI 地址/端口、公司号、账号密码**每台机器都不一样**(端口�
 |---|---|
 | 登录401 | 公司号没带点后缀,或密码错 |
 | 登录403 | 账号无 BI 权限,找管理员开通 |
-| data items do not exist | 绑定没用列显示名(Alias),查字典 columnMap |
+| data items do not exist | 标准查询=绑定没用显示名;**自定义SQL=绑定没用SQL别名原样** |
+| operator does not exist: interval <= integer | 日期相减没做 ::date 转换(时间戳列相减得了interval)→两边加 ::date |
 | 导入后组件全断/错位 | 在中文语言下导入了→改英文重导 |
 | 盘变成52字节空白 | POST 了带壳对象→只 POST .Dashboard 裸对象 |
 | 表里日期只显示年份 | 缺 DateTimeGroupInterval="DayMonthYear" |
@@ -141,6 +151,7 @@ Monitor 源库有4种(SQL Anywhere 老牌默认/PG/SQL Server/SQLite);BI 仓库�
 | 做排行榜(两个视角) | purchase_analysis.xml | 双Tab+独立查询 |
 | 做张简单的表 | poc2_minimal.xml | 最小骨架 |
 | 做生产车间看板(工序+工作中心) | production_dashboard.xml | 需先建实时管道 |
+| 库龄/呆滞/天数分档类 | stock_aging.xml | SQL层算天数+CASE分档,不需要管道 |
 
 ## 沟通与交付
 
@@ -173,6 +184,18 @@ Monitor 源库有4种(SQL Anywhere 老牌默认/PG/SQL Server/SQLite);BI 仓库�
 | `tools/bi_api.js` | Node 版客户端(需 node_modules,已随包) |
 | `tools/bi_config.env.example` | 连接配置模板(config 命令会自动生成正式配置) |
 | `tools/module_dictionary.json` | 8模块数据字典(显示名↔物理列) |
-| `templates/*.xml` | 7种已验证模板 |
+| `templates/*.xml` | 通用模板(最小表/趋势/驾驶舱/穿透/评估/排行/生产/库龄分档等) |
 
 工具命令全集:`config <地址> <公司号> <用户名> <密码>` / `login` / `list` / `import <标题> <xml> [分类]` / `save <id> <xml> [标题]` / `get <id> [输出文件]` / `get-xml <id> [输出文件]`(需PG配置) / `verify [分钟]`(需日志目录配置) / `backup <id...>` / `delete <id>` / `lang en|zh`
+
+<!--DEV-ONLY:以下内容只在本机开发版存在,分发包(zip/插件)构建时从此标记起全部剥除-->
+## 开发版专属(本机维护用)
+
+- `CHANGELOG.md`:30+个坑的完整时间线与根因(**遇到报错先搜这里**,速查表是其浓缩)
+- `spec.md`:操作契约(API/XML/口径/红线/纪律全量版)
+- `check_bindings.js`(全库绑定体检,需PG)/`sinicize.js`(系统盘中文化)/`lib_db.js`(bytea解码)
+- `templates/` 里另有 dash_一车间/二车间/装配/FQC 与 iqc_dashboard(本机客户案例衍生模板,分发版不含)
+- `bi_dashboard_controller.html`+`启动大屏.bat`:大屏自动刷新控制器(挂墙场景)
+- `独立入口.md`/`新机器测试场景.md`/`安装手册.md`/`怎么跟我描述需求.md`:分发与验收物料
+- 管道实例(本机已建①-⑤):①日更整仓 ②采购5min ③销售5min ④生产工序5min ⑤IQC 5min
+- 构建分发包:跑 打包分发版.ps1(从本目录生成小白版 zip:两文档+精简工具+模板,剥除 DEV-ONLY 段与本机私有文件)
