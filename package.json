@@ -1,6 +1,6 @@
 {
   "name": "monitor-bi-dsh",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Monitor BI 报表工作室:左侧导航栏独立入口,点进去就是 Harness 原生对话,但该房间只做 Monitor BI 报表(上下文干净、不与日常对话混杂)。自带零安装 CLI 工具链、操作手册、模板、数据字典;首次使用自动询问连接信息。A clean, sidebar-entry BI-only room for DeepSeek Harness with bundled tools, manual, templates and dictionary.",
   "keywords": [
     "dsh",
@@ -58,7 +58,7 @@
     "meta": {
       "title": "Monitor BI 报表工作室",
       "description": "左侧导航独立入口;房间里是原生对话但只做 Monitor BI 报表。自带工具链/手册/模板/字典,首次使用自动询问连接信息。",
-      "releaseNotes": "本次新增:更新横幅一键更新按钮——点击后插件自动下载安装最新版(进程内,无权限提示),重启 DSH 生效;跳版本更新无影响,永远直接跳到最新。"
+      "releaseNotes": "修复:0.6.0 激活失败(createToolDefinitions 未定义,打包源码不同步所致)。同时保留 0.5.1+ 的版本号显示/更新横幅/ChangeLog/一键更新全部功能。"
     },
     "client": {
       "platform": "web",
@@ -77,5 +77,5 @@
   "devDependencies": {
     "esbuild": "^0.25.0"
   },
-  "releaseNotes": "本次新增:更新横幅一键更新按钮——点击后插件自动下载安装最新版(进程内,无权限提示),重启 DSH 生效;跳版本更新无影响,永远直接跳到最新。"
+  "releaseNotes": "修复:0.6.0 激活失败(createToolDefinitions 未定义,打包源码不同步所致)。同时保留 0.5.1+ 的版本号显示/更新横幅/ChangeLog/一键更新全部功能。"
 }
