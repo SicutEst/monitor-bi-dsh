@@ -130,7 +130,11 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
       <span style={{ opacity: 0.45, fontSize: 11 }}>v{__APP_VERSION__}</span>
       <span style={{ opacity: 0.6 }}>本房间只做 BI 报表</span>
       <span style={{ flex: 1 }} />
-      <button type="button" onClick={() => void newSession()} disabled={busy} title="开一个全新的 BI 对话">新对话</button>
+      <button type="button" onClick={() => void newSession()} disabled={busy} title="开一个全新的 BI 对话" style={{
+        padding: '4px 16px', fontSize: 12, border: 'none', borderRadius: 999,
+        background: '#4d6bfe', color: '#fff', cursor: busy ? 'wait' : 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
+        boxShadow: '0 2px 8px rgba(77,107,254,.35)',
+      }} onMouseOver={e => { if (!busy) e.currentTarget.style.background = '#3a56e8'; }} onMouseOut={e => { e.currentTarget.style.background = '#4d6bfe'; }}>新对话</button>
     </header>
     <div style={body}>
       {error && <div role="alert" style={{ padding: 24 }}>
