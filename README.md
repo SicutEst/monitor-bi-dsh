@@ -1,6 +1,13 @@
 # monitor-bi-dsh — Monitor BI 报表工作室(DeepSeek Harness 插件)
 
-## 更新速览 v0.5.4
+## 更新速览 v0.6.3
+
+- 更新横幅美化:悬停弹窗固定宽度不再拉满屏;一键更新按钮改胶囊造型(悬停变色)
+
+
+- 修复:0.6.0 激活失败(工具定义区丢失,已恢复 bi_api/bi_write/bi_guide/bi_read 全部工具)
+- 保留:版本号显示/更新横幅+ChangeLog/一键更新
+
 
 - 新增:更新横幅显示版本更新说明(ChangeLog,随包发布,读取自 npm 的 README 字段——不依赖 GitHub,被墙网络也能收到)
 - 新增:面板头栏显示当前安装版本号
