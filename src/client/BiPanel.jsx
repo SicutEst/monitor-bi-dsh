@@ -75,7 +75,7 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
 
   const shell = { display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 };
 
-  const hoverStyle = '.mbi-upd:hover .mbi-pop{display:block} .mbi-pop{display:none;position:absolute;top:100%;left:14px;right:14px;z-index:99;background:#fff;border:1px solid #d39e00;border-radius:8px;padding:12px 16px;box-shadow:0 4px 16px rgba(0,0,0,.15);font-size:12px;line-height:1.7;color:#1f2d3d;max-height:280px;overflow-y:auto;white-space:pre-wrap}';
+  const hoverStyle = '.mbi-upd:hover .mbi-pop{display:block} .mbi-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;width:400px;max-width:calc(100vw - 48px);z-index:99;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;box-shadow:0 8px 24px rgba(15,23,42,.18);font-size:12px;line-height:1.7;color:#1f2d3d;max-height:300px;overflow-y:auto;white-space:pre-wrap}';
 
   const header = { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--dsw-alias-separator-solid, rgba(128,128,128,.25))', fontSize: 13 };
   const body = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' };
@@ -115,11 +115,12 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
        updState === 'doing' ? <strong style={{ color: '#8492a6' }}>更新中,请稍候…</strong> :
        updState === 'fail' ? <span style={{ color: '#e74c3c' }}>一键更新失败:{updMsg}(可用右侧复制命令兜底)</span> :
        <button type="button" onClick={() => void runUpdate()} style={{
-        padding: '4px 16px', fontSize: 12, border: 'none', borderRadius: 4,
-        background: '#d39e00', color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
-      }} title={notes || undefined}>⚡ 一键更新</button>}
+        padding: '5px 20px', fontSize: 12, border: 'none', borderRadius: 999,
+        background: '#e67e22', color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
+        boxShadow: '0 2px 8px rgba(230,126,34,.4)',
+      }} onMouseOver={e => { e.currentTarget.style.background = '#d35400'; }} onMouseOut={e => { e.currentTarget.style.background = '#e67e22'; }} title={notes || undefined}>⚡ 一键更新</button>}
       {updState === 'fail' && <button type="button" onClick={copyUpdateCmd} style={{
-        padding: '3px 12px', fontSize: 11, border: '1px solid #d39e00', borderRadius: 4,
+        padding: '4px 16px', fontSize: 11, border: '1px solid #e2e8f0', borderRadius: 999,
         background: copied ? '#d4edda' : '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
       }}>{copied ? '✓ 已复制' : '复制命令兜底'}</button>}
       {notes && <div className="mbi-pop" role="tooltip"><strong>v{updateInfo.latest} 更新内容:</strong>{'\n\n'}{notes}</div>}
