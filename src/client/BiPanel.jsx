@@ -14,6 +14,8 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
   const [busy, setBusy] = useState(true);
   const [updateInfo, setUpdateInfo] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [updState, setUpdState] = useState('idle'); // idle|doing|done|fail
+  const [updMsg, setUpdMsg] = useState('');
   const owned = useRef(null);
   const started = useRef(false);
 
@@ -75,6 +77,15 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
   const header = { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--dsw-alias-separator-solid, rgba(128,128,128,.25))', fontSize: 13 };
   const body = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' };
 
+  async function runUpdate() {
+    setUpdState('doing');
+    try {
+      const r = await api.performUpdate();
+      if (r && r.ok) { setUpdState('done'); if (r.message) setUpdMsg(r.message); }
+      else { setUpdState('fail'); setUpdMsg((r && r.error) || '未知错误'); }
+    } catch (e) { setUpdState('fail'); setUpdMsg(String(e && e.message || e)); }
+  }
+
   function copyUpdateCmd() {
     if (updateInfo?.updateCommand) {
       navigator.clipboard?.writeText(updateInfo.updateCommand).then(() => {
@@ -84,20 +95,30 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
     }
   }
 
+  const notes = (updateInfo?.releaseNotes || '').trim();
   const updateBanner = updateInfo ? {
     display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px',
     background: '#fff3cd', borderBottom: '1px solid #ffe69c', fontSize: 12,
   } : null;
 
   return <div style={shell} aria-label="Monitor BI 工作室">
-    {updateBanner && <div style={updateBanner} role="status">
+    {updateBanner && <div style={updateBanner} role="status" title={notes || undefined}>
       <span aria-hidden="true">🔔</span>
       <span>新版本 <strong>v{updateInfo.latest}</strong> 可用（当前 v{updateInfo.current}）</span>
+      {notes && <span style={{ color: '#7a5c00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 420 }}
+        title={notes}>— {notes}</span>}
       <span style={{ flex: 1 }} />
-      <button type="button" onClick={copyUpdateCmd} style={{
+      {updState === 'done' ? <strong style={{ color: '#27ae60' }}>✓ {updMsg || '已更新,请重启 DSH 生效'}</strong> :
+       updState === 'doing' ? <strong style={{ color: '#8492a6' }}>更新中,请稍候…</strong> :
+       updState === 'fail' ? <span style={{ color: '#e74c3c' }}>一键更新失败:{updMsg}(可用右侧复制命令兜底)</span> :
+       <button type="button" onClick={() => void runUpdate()} style={{
+        padding: '4px 16px', fontSize: 12, border: 'none', borderRadius: 4,
+        background: '#d39e00', color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
+      }} title={notes || undefined}>⚡ 一键更新</button>}
+      {updState === 'fail' && <button type="button" onClick={copyUpdateCmd} style={{
         padding: '3px 12px', fontSize: 11, border: '1px solid #d39e00', borderRadius: 4,
         background: copied ? '#d4edda' : '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
-      }}>{copied ? '✓ 已复制' : '复制更新命令'}</button>
+      }}>{copied ? '✓ 已复制' : '复制命令兜底'}</button>}
     </div>}
     <header style={header}>
       <span aria-hidden="true">📊</span>
