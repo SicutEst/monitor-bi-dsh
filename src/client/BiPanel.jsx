@@ -116,11 +116,11 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
        updState === 'fail' ? <span style={{ color: '#e74c3c' }}>一键更新失败:{updMsg}(可用右侧复制命令兜底)</span> :
        <button type="button" onClick={() => void runUpdate()} style={{
         padding: '5px 20px', fontSize: 12, border: 'none', borderRadius: 999,
-        background: '#e67e22', color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
-        boxShadow: '0 2px 8px rgba(230,126,34,.4)',
-      }} onMouseOver={e => { e.currentTarget.style.background = '#d35400'; }} onMouseOut={e => { e.currentTarget.style.background = '#e67e22'; }} title={notes || undefined}>⚡ 一键更新</button>}
+        background: '#4d6bfe', color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
+        boxShadow: '0 2px 8px rgba(77,107,254,.4)',
+      }} onMouseOver={e => { e.currentTarget.style.background = '#3a56e8'; }} onMouseOut={e => { e.currentTarget.style.background = '#4d6bfe'; }} title={notes || undefined}>⚡ 一键更新</button>}
       {updState === 'fail' && <button type="button" onClick={copyUpdateCmd} style={{
-        padding: '4px 16px', fontSize: 11, border: '1px solid #e2e8f0', borderRadius: 999,
+        padding: '4px 16px', fontSize: 11, border: '1px solid #4d6bfe', borderRadius: 999,
         background: copied ? '#d4edda' : '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
       }}>{copied ? '✓ 已复制' : '复制命令兜底'}</button>}
       {notes && <div className="mbi-pop" role="tooltip"><strong>v{updateInfo.latest} 更新内容:</strong>{'\n\n'}{notes}</div>}
