@@ -1,7 +1,7 @@
 // 更新核心:下载 tgz → 解 tar → 覆盖插件自身文件。全程进程内,无子进程。
 // 放独立模块以便脱离 DSH 依赖做单元测试。
 import { gunzipSync } from 'node:zlib';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, renameSync, existsSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 
 /** 解析 tar buffer(ustar/gnu,支持 PAX 长名),返回文件条目 */
@@ -36,7 +36,10 @@ export function parseTar(buf) {
   return entries;
 }
 
-/** 把 tgz 内容覆盖写入 pluginRoot(tar 内 package/ 前缀剥离,防路径穿越)。返回写入文件数 */
+/** 把 tgz 内容覆盖写入 pluginRoot(tar 内 package/ 前缀剥离,防路径穿越)。返回写入文件数。
+ *  写入策略:先写 .tmp 临时文件再 rename 替换——避免 writeFileSync 原地改 pnpm 硬链接污染 store。
+ *  rename 在同一卷上原子且创建新 inode,原有硬链接(指向旧内容)不受影响。
+ */
 export function applyUpdate(tgzBuf, pluginRoot) {
   const tar = gunzipSync(tgzBuf);
   const entries = parseTar(tar);
@@ -45,9 +48,17 @@ export function applyUpdate(tgzBuf, pluginRoot) {
     const rel = e.path.replace(/^package\//, '');
     if (!rel || rel.includes('..') || path.isAbsolute(rel)) continue;
     const full = path.join(pluginRoot, rel);
+    const tmp = full + '.mbi-tmp';
     mkdirSync(path.dirname(full), { recursive: true });
-    writeFileSync(full, e.data);
-    files++;
+    writeFileSync(tmp, e.data);
+    try {
+      renameSync(tmp, full);
+      files++;
+    } catch (err) {
+      // Windows 上 rename 目标存在时偶尔失败(锁),兜底:删旧→rename
+      try { if (existsSync(full)) unlinkSync(full); renameSync(tmp, full); files++; }
+      catch (e2) { try { unlinkSync(tmp); } catch {} throw e2; }
+    }
   }
   return files;
 }
