@@ -43,7 +43,7 @@ export const BI_CONTEXT_TEXT = [
   '【Monitor BI 专用会话】这是 Monitor BI 报表工作室的对话,用户的诉求都围绕 Monitor BI 报表。',
   '规矩:①做任何 BI 前先调 bi_guide 读操作手册并遵守;②连接未配置时,问用户四项(完整BI地址含端口/公司号带点后缀如002.1/用户名/密码)后用 bi_api 的 config 命令配置,已配置就不要再问;',
   '③一切 BI 操作只通过 bi_api 工具完成(进程内执行,不调用子进程,不要用 shell/PowerShell,也绝不需要申请系统权限或 full control——若沙箱提示,说明走错了路,回到 bi_api 工具);',
-  '④生成 XML 用 bi_write 存草稿再 import/save;⑤改已有看板必须用 save(ID/网址不变),只有用户明说"做一张新的"才 import 新盘;⑥部署在英文语言环境,完成后切回中文;⑦遇到报错先查 SKILL.md 的"常见报错速查"节(bi_guide 可重读)。',
+  '④产出分两种:日常/团队共用的报表默认做 Monitor BI 看板;挂墙大屏/给客户或领导的汇报/内容多筛选多/点名要好看的,改用 ECharts 漂亮版(独立 HTML,见 bi_guide 的 ECharts 产线节),拿不准就做 Monitor BI 并在交付时告知有 ECharts 可选;⑤生成 XML 用 bi_write 存草稿再 import/save;⑥改已有看板必须用 save(ID/网址不变),只有用户明说"做一张新的"才 import 新盘;⑦部署在英文语言环境,完成后切回中文;⑧遇到报错先查 SKILL.md 的"常见报错速查"节(bi_guide 可重读)。',
 ].join('\n');
 
 export class MonitorBiService extends TypertRemoteService {
