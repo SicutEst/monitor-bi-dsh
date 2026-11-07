@@ -108,7 +108,6 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
     {updateBanner && <div className="mbi-upd" style={{ position:'relative' }}><style>{hoverStyle}</style><div style={updateBanner} role="status">
       <span aria-hidden="true">🔔</span>
       <span>新版本 <strong>v{updateInfo.latest}</strong> 可用（当前 v{updateInfo.current}）</span>
-      {notes && <span style={{ color: '#7a5c00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 420 }}>— {notes}</span>}
       <span style={{ flex: 1 }} />
       {updState === 'done' ? <strong style={{ color: '#27ae60' }}>✓ {updMsg || '已更新,请重启 DSH 生效'}</strong> :
        updState === 'doing' ? <strong style={{ color: '#8492a6' }}>更新中,请稍候…</strong> :
