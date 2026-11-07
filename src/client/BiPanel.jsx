@@ -74,6 +74,9 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
   }
 
   const shell = { display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 };
+
+  const hoverStyle = '.mbi-upd:hover .mbi-pop{display:block} .mbi-pop{display:none;position:absolute;top:100%;left:14px;right:14px;z-index:99;background:#fff;border:1px solid #d39e00;border-radius:8px;padding:12px 16px;box-shadow:0 4px 16px rgba(0,0,0,.15);font-size:12px;line-height:1.7;color:#1f2d3d;max-height:280px;overflow-y:auto;white-space:pre-wrap}';
+
   const header = { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--dsw-alias-separator-solid, rgba(128,128,128,.25))', fontSize: 13 };
   const body = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' };
 
@@ -102,7 +105,7 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
   } : null;
 
   return <div style={shell} aria-label="Monitor BI 工作室">
-    {updateBanner && <div style={updateBanner} role="status" title={notes || undefined}>
+    {updateBanner && <div className="mbi-upd" style={{ position:'relative' }}><style>{hoverStyle}</style><div style={updateBanner} role="status">
       <span aria-hidden="true">🔔</span>
       <span>新版本 <strong>v{updateInfo.latest}</strong> 可用（当前 v{updateInfo.current}）</span>
       {notes && <span style={{ color: '#7a5c00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 420 }}
@@ -119,7 +122,8 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
         padding: '3px 12px', fontSize: 11, border: '1px solid #d39e00', borderRadius: 4,
         background: copied ? '#d4edda' : '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
       }}>{copied ? '✓ 已复制' : '复制命令兜底'}</button>}
-    </div>}
+      {notes && <div className="mbi-pop" role="tooltip"><strong>v{updateInfo.latest} 更新内容:</strong>{'\n\n'}{notes}</div>}
+    </div></div>}
     <header style={header}>
       <span aria-hidden="true">📊</span>
       <strong>Monitor BI 工作室</strong>
