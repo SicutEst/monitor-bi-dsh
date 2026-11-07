@@ -1,22 +1,11 @@
 # monitor-bi-dsh — Monitor BI 报表工作室(DeepSeek Harness 插件)
 
-## 更新速览 v0.6.3
+## 更新速览 v0.7.0
 
-- 更新横幅美化:悬停弹窗固定宽度不再拉满屏;一键更新按钮改胶囊造型(悬停变色)
-
-
-- 修复:0.6.0 激活失败(工具定义区丢失,已恢复 bi_api/bi_write/bi_guide/bi_read 全部工具)
-- 保留:版本号显示/更新横幅+ChangeLog/一键更新
-
-
-- 新增:更新横幅显示版本更新说明(ChangeLog,随包发布,读取自 npm 的 README 字段——不依赖 GitHub,被墙网络也能收到)
+- 新增:更新横幅一键更新按钮(点击自动完成,重启 DSH 生效)
 - 新增:面板头栏显示当前安装版本号
-- 修复:v0.5.0 发布包缺自动更新功能(打包目录源码未同步,已修流程)
+- 修复:悬停弹窗与原生提示重叠;弹窗底色与横幅同款
 
-
-装好后 **DeepSeek Harness(DSH)左侧导航栏多一个"Monitor BI"入口**。点进去是 Harness 原生对话界面(零自制前端),但这个房间**只做 Monitor BI 报表**——上下文干净,不与日常对话混杂;一切 BI 操作在插件进程内完成,**不申请任何系统权限**。
-
-A community plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness): adds a "Monitor BI" room to the left navigation. The room embeds Harness's own native conversation, dedicated to building dashboards in **Monitor BI** via natural language. All BI calls run in-process (no child processes, no elevated permissions). Bundled: zero-install toolchain, operating manual, 9 proven dashboard templates, an 8-module data dictionary, and a spec template. On first use it asks for the four connection facts (BI address incl. port / company number with instance suffix / username / password) — every site differs, it never guesses.
 
 ## 功能 / Features
 
