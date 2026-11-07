@@ -4,7 +4,7 @@
  *   lib/client.js — browser bundle wrapped for window.__ModuleLoader__ (CJS,
  *                   react / @deepseek-ai/* kept external)
  */
-import { mkdirSync, statSync } from 'node:fs';
+import { mkdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
@@ -38,6 +38,7 @@ await esbuild.build({
 });
 
 // ---------- client ----------
+const pkgVersion = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 const loaderBanner = [
   'window.__ModuleLoader__.load({',
   `\tid: "${'monitor-bi-dsh'}",`,
@@ -62,6 +63,7 @@ await esbuild.build({
   sourcemap: false,
   legalComments: 'none',
   logLevel: 'info',
+  define: { __APP_VERSION__: JSON.stringify(pkgVersion) },
   banner: { js: loaderBanner },
   footer: { js: loaderFooter },
 });
