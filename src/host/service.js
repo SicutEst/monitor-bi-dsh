@@ -11,6 +11,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol';
 import { defineTool } from '@deepseek-ai/dsh-tools';
 import { applyUpdate } from './updater.js';
+import { versionGt } from './version.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // 源码布局 src/host -> ../../skill;构建布局 lib -> ../skill。自动探测(坑:写死层级在打包后差一级)
@@ -98,7 +99,7 @@ export class MonitorBiService extends TypertRemoteService {
       if (!res.ok) throw new Error('npm 注册表无响应(' + res.status + ')');
       const remote = await res.json();
       const latestVer = (remote['dist-tags'] && remote['dist-tags'].latest) || '';
-      if (!(latestVer > localPkg.version)) return { ok: true, updated: false, version: localPkg.version, message: '已是最新版本' };
+      if (!(versionGt(latestVer, localPkg.version))) return { ok: true, updated: false, version: localPkg.version, message: '已是最新版本' };
       const tarballUrl = remote.versions && remote.versions[latestVer] && remote.versions[latestVer].dist && remote.versions[latestVer].dist.tarball;
       if (!tarballUrl) throw new Error('registry 未提供下载地址');
       const tgzRes = await fetch(tarballUrl, { signal: AbortSignal.timeout(120000) });
@@ -122,7 +123,7 @@ export class MonitorBiService extends TypertRemoteService {
       if (!res.ok) return { current: localVer, latest: localVer, releaseNotes: '', updateAvailable: false };
       const remote = await res.json();
       const latestVer = (remote['dist-tags'] && remote['dist-tags'].latest) || localVer;
-      const updateAvailable = latestVer > localVer;
+      const updateAvailable = versionGt(latestVer, localVer);
       const readme = typeof remote.readme === 'string' ? remote.readme : '';
       const m = readme.match(/## 更新速览 v[\d.]+\n([\s\S]*?)(?=\n## |$)/);
       const releaseNotes = m ? m[1].trim().slice(0, 500) : '';
