@@ -12,8 +12,15 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
   const [chat, setChat] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [copied, setCopied] = useState(false);
   const owned = useRef(null);
   const started = useRef(false);
+
+  useEffect(() => {
+    if (!api?.checkUpdate) return;
+    api.checkUpdate().then(r => { if (r && r.updateAvailable) setUpdateInfo(r); }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (started.current) return;
@@ -68,10 +75,34 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
   const header = { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--dsw-alias-separator-solid, rgba(128,128,128,.25))', fontSize: 13 };
   const body = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' };
 
+  function copyUpdateCmd() {
+    if (updateInfo?.updateCommand) {
+      navigator.clipboard?.writeText(updateInfo.updateCommand).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(() => {});
+    }
+  }
+
+  const updateBanner = updateInfo ? {
+    display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px',
+    background: '#fff3cd', borderBottom: '1px solid #ffe69c', fontSize: 12,
+  } : null;
+
   return <div style={shell} aria-label="Monitor BI 工作室">
+    {updateBanner && <div style={updateBanner} role="status">
+      <span aria-hidden="true">🔔</span>
+      <span>新版本 <strong>v{updateInfo.latest}</strong> 可用（当前 v{updateInfo.current}）</span>
+      <span style={{ flex: 1 }} />
+      <button type="button" onClick={copyUpdateCmd} style={{
+        padding: '3px 12px', fontSize: 11, border: '1px solid #d39e00', borderRadius: 4,
+        background: copied ? '#d4edda' : '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+      }}>{copied ? '✓ 已复制' : '复制更新命令'}</button>
+    </div>}
     <header style={header}>
       <span aria-hidden="true">📊</span>
       <strong>Monitor BI 工作室</strong>
+      <span style={{ opacity: 0.45, fontSize: 11 }}>v{__APP_VERSION__}</span>
       <span style={{ opacity: 0.6 }}>本房间只做 BI 报表</span>
       <span style={{ flex: 1 }} />
       <button type="button" onClick={() => void newSession()} disabled={busy} title="开一个全新的 BI 对话">新对话</button>
