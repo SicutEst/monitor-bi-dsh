@@ -85,6 +85,29 @@ export class MonitorBiService extends TypertRemoteService {
   async getGuide() {
     return { text: readText(path.join(SKILL_DIR, 'SKILL.md')) };
   }
+
+  /** Check npm registry for a newer version; called by the panel on open. */
+  async checkUpdate() {
+    try {
+      const localPkg = JSON.parse(readFileSync(path.join(SKILL_DIR, '..', 'package.json'), 'utf8'));
+      const localVer = localPkg.version;
+      const res = await fetch('https://registry.npmjs.org/monitor-bi-dsh/latest', {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) return { current: localVer, latest: localVer, updateAvailable: false };
+      const remote = await res.json();
+      const latestVer = remote.version || localVer;
+      const updateAvailable = latestVer > localVer;
+      return {
+        current: localVer,
+        latest: latestVer,
+        updateAvailable,
+        updateCommand: updateAvailable ? 'dsh plugin --profile desktop add monitor-bi-dsh' : null,
+      };
+    } catch (e) {
+      return { current: 'unknown', latest: 'unknown', updateAvailable: false };
+    }
+  }
 }
 
 function readText(full) {
@@ -167,7 +190,7 @@ function createToolDefinitions() {
 // Typert Remote ceremony (mirrors qiaomu-rss): decorate service methods so the
 // web client can call them after `ctx.remote.$mount(...)`.
 export function applyRemoteDecorators() {
-  const names = ['setBiContext', 'getGuide'];
+  const names = ['setBiContext', 'getGuide', 'checkUpdate'];
   const prototype = MonitorBiService.prototype;
   for (const name of names) {
     Remote(name)(prototype[name], {
