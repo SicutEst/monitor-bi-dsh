@@ -10,6 +10,7 @@ import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol';
 import { defineTool } from '@deepseek-ai/dsh-tools';
+import { applyUpdate } from './updater.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // 源码布局 src/host -> ../../skill;构建布局 lib -> ../skill。自动探测(坑:写死层级在打包后差一级)
@@ -18,6 +19,7 @@ export const SKILL_DIR = SKILL_CANDIDATES.find((p) => existsSync(path.join(p, 'S
 const TOOLS = path.join(SKILL_DIR, 'tools');
 const CLI = path.join(TOOLS, 'bi_api.js');
 const WORK = path.join(SKILL_DIR, 'work');
+const PLUGIN_ROOT = path.resolve(SKILL_DIR, '..');
 const requireCjs = createRequire(import.meta.url);
 
 // In-process BI client (NO child processes → NO sandbox/full-access prompts).
@@ -85,6 +87,30 @@ export class MonitorBiService extends TypertRemoteService {
   async getGuide() {
     return { text: readText(path.join(SKILL_DIR, 'SKILL.md')) };
   }
+  /**
+   * 一键更新:进程内下载 npm 最新 tgz → 解 tar 覆盖自身文件 → 提示重启。
+   * 无子进程、无权限提示;失败时返回错误,面板回退到“复制更新命令”。
+   */
+  async performUpdate() {
+    try {
+      const localPkg = JSON.parse(readFileSync(path.join(SKILL_DIR, '..', 'package.json'), 'utf8'));
+      const res = await fetch('https://registry.npmjs.org/monitor-bi-dsh', { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) throw new Error('npm 注册表无响应(' + res.status + ')');
+      const remote = await res.json();
+      const latestVer = (remote['dist-tags'] && remote['dist-tags'].latest) || '';
+      if (!(latestVer > localPkg.version)) return { ok: true, updated: false, version: localPkg.version, message: '已是最新版本' };
+      const tarballUrl = remote.versions && remote.versions[latestVer] && remote.versions[latestVer].dist && remote.versions[latestVer].dist.tarball;
+      if (!tarballUrl) throw new Error('registry 未提供下载地址');
+      const tgzRes = await fetch(tarballUrl, { signal: AbortSignal.timeout(120000) });
+      if (!tgzRes.ok) throw new Error('下载失败 HTTP ' + tgzRes.status);
+      const buf = Buffer.from(await tgzRes.arrayBuffer());
+      const files = applyUpdate(buf, PLUGIN_ROOT);
+      this.ctx.logger?.info?.('monitor-bi-dsh: self-updated to ' + latestVer + ' (' + files + ' files)');
+      return { ok: true, updated: true, version: latestVer, files, message: '已更新到 ' + latestVer + ',请重启 DSH 生效' };
+    } catch (e) {
+      return { ok: false, error: String(e && e.message || e) };
+    }
+  }
 
   /** Check npm registry for a newer version; called by the panel on open. */
   async checkUpdate() {
@@ -115,7 +141,7 @@ export class MonitorBiService extends TypertRemoteService {
 
 // Typert Remote 装饰(照 qiaomu-rss):把要暴露给网页面板的方法装饰成 Remote
 export function applyRemoteDecorators() {
-  const names = ['setBiContext', 'getGuide', 'checkUpdate'];
+  const names = ['setBiContext', 'getGuide', 'checkUpdate', 'performUpdate'];
   const prototype = MonitorBiService.prototype;
   for (const name of names) {
     Remote(name)(prototype[name], {
