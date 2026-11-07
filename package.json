@@ -1,6 +1,6 @@
 {
   "name": "monitor-bi-dsh",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "description": "Monitor BI 报表工作室:左侧导航栏独立入口,点进去就是 Harness 原生对话,但该房间只做 Monitor BI 报表(上下文干净、不与日常对话混杂)。自带零安装 CLI 工具链、操作手册、模板、数据字典;首次使用自动询问连接信息。A clean, sidebar-entry BI-only room for DeepSeek Harness with bundled tools, manual, templates and dictionary.",
   "keywords": [
     "dsh",
@@ -58,7 +58,7 @@
     "meta": {
       "title": "Monitor BI 报表工作室",
       "description": "左侧导航独立入口;房间里是原生对话但只做 Monitor BI 报表。自带工具链/手册/模板/字典,首次使用自动询问连接信息。",
-      "releaseNotes": "界面:更新按钮照抄 ZCode 风格——绿色胶囊,文字就写「更新」,悬停显示更新内容,位置在横幅右侧。"
+      "releaseNotes": "颜色归位:悬停弹窗底色与通知横幅同款;更新按钮保持 DeepSeek 蓝。布局/交互不变。"
     },
     "client": {
       "platform": "web",
@@ -77,5 +77,5 @@
   "devDependencies": {
     "esbuild": "^0.25.0"
   },
-  "releaseNotes": "界面:更新按钮照抄 ZCode 风格——绿色胶囊,文字就写「更新」,悬停显示更新内容,位置在横幅右侧。"
+  "releaseNotes": "颜色归位:悬停弹窗底色与通知横幅同款;更新按钮保持 DeepSeek 蓝。布局/交互不变。"
 }
