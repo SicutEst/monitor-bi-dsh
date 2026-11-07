@@ -38,7 +38,7 @@ function descriptor(name, hasParams = true) {
 
 const REMOTE_SURFACE = {
   package: PLUGIN_ID,
-  descriptors: [descriptor('setBiContext'), descriptor('getGuide', false), descriptor('checkUpdate', false)],
+  descriptors: [descriptor('setBiContext'), descriptor('getGuide', false), descriptor('checkUpdate', false), descriptor('performUpdate', false)],
 };
 
 export const inject = ['slots', 'layout', 'remote'];
@@ -61,6 +61,7 @@ function mountRoom(ctx) {
     ...nativeChatBridge(ctx),
     setBiContext: (params) => call('setBiContext', params),
     checkUpdate: () => call('checkUpdate'),
+    performUpdate: () => call('performUpdate'),
   };
 
   // Main room page (owns one BI session) + its native-conversation child slot.
