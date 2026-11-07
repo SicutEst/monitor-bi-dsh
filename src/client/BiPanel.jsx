@@ -108,8 +108,7 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
     {updateBanner && <div className="mbi-upd" style={{ position:'relative' }}><style>{hoverStyle}</style><div style={updateBanner} role="status">
       <span aria-hidden="true">🔔</span>
       <span>新版本 <strong>v{updateInfo.latest}</strong> 可用（当前 v{updateInfo.current}）</span>
-      {notes && <span style={{ color: '#7a5c00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 420 }}
-        title={notes}>— {notes}</span>}
+      {notes && <span style={{ color: '#7a5c00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 420 }}>— {notes}</span>}
       <span style={{ flex: 1 }} />
       {updState === 'done' ? <strong style={{ color: '#27ae60' }}>✓ {updMsg || '已更新,请重启 DSH 生效'}</strong> :
        updState === 'doing' ? <strong style={{ color: '#8492a6' }}>更新中,请稍候…</strong> :
@@ -118,7 +117,7 @@ export function BiPanel({ api, SessionProvider, renderSlot }) {
         padding: '5px 20px', fontSize: 12, border: 'none', borderRadius: 999,
         background: '#4d6bfe', color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
         boxShadow: '0 2px 8px rgba(77,107,254,.4)',
-      }} onMouseOver={e => { e.currentTarget.style.background = '#3a56e8'; }} onMouseOut={e => { e.currentTarget.style.background = '#4d6bfe'; }} title={notes || undefined}>⚡ 一键更新</button>}
+      }} onMouseOver={e => { e.currentTarget.style.background = '#3a56e8'; }} onMouseOut={e => { e.currentTarget.style.background = '#4d6bfe'; }}>⚡ 一键更新</button>}
       {updState === 'fail' && <button type="button" onClick={copyUpdateCmd} style={{
         padding: '4px 16px', fontSize: 11, border: '1px solid #4d6bfe', borderRadius: 999,
         background: copied ? '#d4edda' : '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
