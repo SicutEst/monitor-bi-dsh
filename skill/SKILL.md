@@ -165,6 +165,7 @@ Monitor 源库有4种(SQL Anywhere 老牌默认/PG/SQL Server/SQLite);BI 仓库�
 |---|---|
 | 日常报表/团队在 BI 里看/我要自己改 | **Monitor BI**(默认,联动权限同步白拿) |
 | 挂墙/车间电视/大屏 | **ECharts** |
+| 内容多/筛选多/一屏挤不下(BI 筛选区占幅面约 20%,很丑) | **ECharts**(筛选可缩成小下拉,不占画面) |
 | 给客户或领导的汇报、要好看 | **ECharts**(胶囊彩字自由布局,80-95分) |
 | 点名 ECharts/独立文件/HTML | **ECharts** |
 
