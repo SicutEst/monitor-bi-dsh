@@ -1,6 +1,6 @@
 {
   "name": "monitor-bi-dsh",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "description": "Monitor BI 报表工作室:左侧导航栏独立入口,点进去就是 Harness 原生对话,但该房间只做 Monitor BI 报表(上下文干净、不与日常对话混杂)。自带零安装 CLI 工具链、操作手册、模板、数据字典;首次使用自动询问连接信息。A clean, sidebar-entry BI-only room for DeepSeek Harness with bundled tools, manual, templates and dictionary.",
   "keywords": [
     "dsh",
@@ -58,7 +58,7 @@
     "meta": {
       "title": "Monitor BI 报表工作室",
       "description": "左侧导航独立入口;房间里是原生对话但只做 Monitor BI 报表。自带工具链/手册/模板/字典,首次使用自动询问连接信息。",
-      "releaseNotes": "新增铁律:改走 ECharts 前必须先向用户告知(ECharts 输出/不在标准 BI 页面/独立文件或端口/数据新鲜度)并等用户确认,确认前不生成。"
+      "releaseNotes": "重大改版:单入口双模式——侧边栏只有一个 Monitor BI 入口,房间头栏可切换「BI 看板」(DevExpress,留在 BI 界面)与「ECharts 漂亮版」(独立 HTML)两种产出;两模式会话与上下文完全隔离。"
     },
     "client": {
       "platform": "web",
@@ -77,5 +77,5 @@
   "devDependencies": {
     "esbuild": "^0.25.0"
   },
-  "releaseNotes": "新增铁律:改走 ECharts 前必须先向用户告知(ECharts 输出/不在标准 BI 页面/独立文件或端口/数据新鲜度)并等用户确认,确认前不生成。"
+  "releaseNotes": "重大改版:单入口双模式——侧边栏只有一个 Monitor BI 入口,房间头栏可切换「BI 看板」(DevExpress,留在 BI 界面)与「ECharts 漂亮版」(独立 HTML)两种产出;两模式会话与上下文完全隔离。"
 }
