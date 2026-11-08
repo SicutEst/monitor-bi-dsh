@@ -121,12 +121,29 @@ export function BiPanel({ api, SessionProvider, renderSlot, biChatSlot, echartsC
       <span style={pill(mode === 'echarts')} onClick={() => setMode('echarts')}>ECharts 漂亮版</span>
       <span style={{ opacity: 0.55, fontSize: 11 }}>两种产出,上下文分开</span>
       <span style={{ flex: 1 }} />
-      <button type="button" onClick={() => activate(mode === 'bi' ? 'bi' : 'echarts')} disabled={busy} title="当前模式开一个新对话">新对话</button>
+      <button type="button" onClick={() => activate(mode === 'bi' ? 'bi' : 'echarts')} disabled={busy} title="当前模式开一个新对话" style={{
+        padding: '4px 16px', fontSize: 12, border: 'none', borderRadius: 999,
+        background: '#4d6bfe', color: '#fff', cursor: busy ? 'wait' : 'pointer', whiteSpace: 'nowrap', fontWeight: 600,
+        boxShadow: '0 2px 8px rgba(77,107,254,.35)',
+      }} onMouseOver={e => { if (!busy) e.currentTarget.style.background = '#3a56e8'; }} onMouseOut={e => { e.currentTarget.style.background = '#4d6bfe'; }}>新对话</button>
     </header>
     <div style={body}>
       {error && <div role="alert" style={{ padding: 24 }}>
         <strong>未能打开</strong><p style={{ whiteSpace: 'pre-wrap' }}>{error}</p>
         <button type="button" onClick={() => activate(mode)}>重试</button>
+        <details style={{ marginTop: 16, fontSize: 12, color: '#8492a6' }}>
+          <summary style={{ cursor: 'pointer' }}>插件异常?点这里看自救方法</summary>
+          <div style={{ marginTop: 8, lineHeight: 1.8 }}>
+            <p><b>显示已安装但入口/内容出不来</b>(激活失败):通常是旧版残留。命令行执行
+            <code style={{ background: '#f0f2f5', padding: '1px 6px', borderRadius: 4 }}>dsh plugin --profile desktop add monitor-bi-dsh</code>
+            覆盖重装最新版,然后重启 DSH。</p>
+            <p><b>彻底卸载重装</b>:命令行执行
+            <code style={{ background: '#f0f2f5', padding: '1px 6px', borderRadius: 4 }}>dsh plugin --profile desktop remove monitor-bi-dsh</code>
+            再
+            <code style={{ background: '#f0f2f5', padding: '1px 6px', borderRadius: 4 }}>dsh plugin --profile desktop add monitor-bi-dsh</code>。卸载不会删除你的连接配置。</p>
+            <p>仍不行:把本页面报错截图发给插件作者。</p>
+          </div>
+        </details>
       </div>}
       {!error && busy && !(mode === 'bi' ? bi : ec) && <div role="status" style={{ padding: 24, opacity: 0.7 }}>正在打开{(mode === 'bi' ? ' BI 看板' : ' ECharts')}会话…</div>}
       {mode === 'bi' && bi && SessionProvider && renderSlot && biChatSlot &&
