@@ -6,11 +6,13 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { BiPanel } from './BiPanel.jsx';
+import { EChartsPanel } from './EChartsPanel.jsx';
 import { NativeConversation } from './NativeConversation.jsx';
 import { nativeChatBridge } from './native-chat.js';
 
 const PLUGIN_ID = 'monitor-bi-dsh';
 export const PANEL_ID = 'monitor-bi';
+export const ECHARTS_PANEL_ID = 'monitor-bi-echarts';
 const CHAT_SLOT = 'monitor-bi.chat';
 
 /** Minimal JSON pass-through codec: the client forwards payloads verbatim. */
@@ -38,7 +40,7 @@ function descriptor(name, hasParams = true) {
 
 const REMOTE_SURFACE = {
   package: PLUGIN_ID,
-  descriptors: [descriptor('setBiContext'), descriptor('getGuide', false), descriptor('checkUpdate', false), descriptor('performUpdate', false)],
+  descriptors: [descriptor('setBiContext'), descriptor('setEchartsContext'), descriptor('getGuide', false), descriptor('checkUpdate', false), descriptor('performUpdate', false)],
 };
 
 export const inject = ['slots', 'layout', 'remote'];
@@ -60,6 +62,7 @@ function mountRoom(ctx) {
   const api = {
     ...nativeChatBridge(ctx),
     setBiContext: (params) => call('setBiContext', params),
+    setEchartsContext: (params) => call('setEchartsContext', params),
     checkUpdate: () => call('checkUpdate'),
     performUpdate: () => call('performUpdate'),
   };
@@ -70,16 +73,19 @@ function mountRoom(ctx) {
     key: PANEL_ID,
     children: { [CHAT_SLOT]: { kind: 'single', scope: 'session' } },
     inject: () => ({ api }),
-  }, BiPanel));
+  }, (props) => <BiPanel {...props} biChatSlot="monitor-bi.chat" echartsChatSlot="echarts.chat" />));
   ctx.slots.inject(CHAT_SLOT, () => ctx.slots.register({ name: CHAT_SLOT }, NativeConversation));
+  ctx.slots.inject('echarts.chat', () => ctx.slots.register({ name: 'echarts.chat' }, NativeConversation));
 
   // Left navigation entry.
-  ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
-    name: 'sidebar.panellist',
-    id: PANEL_ID,
-    order: 20,
-    label: 'Monitor BI',
-  }, BiSidebarIcon));
+}
+
+/** Chart glyph for the ECharts navigation entry. */
+export function EChartsSidebarIcon() {
+  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+    <path d="M3 17l5-6 4 3 6-8" />
+    <path d="M4 21h2" /><path d="M10 21h2" /><path d="M16 21h2" />
+  </svg>;
 }
 
 /** Bar-chart glyph shown in the left navigation. */
