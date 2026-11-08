@@ -77,7 +77,13 @@ function mountRoom(ctx) {
   ctx.slots.inject(CHAT_SLOT, () => ctx.slots.register({ name: CHAT_SLOT }, NativeConversation));
   ctx.slots.inject('echarts.chat', () => ctx.slots.register({ name: 'echarts.chat' }, NativeConversation));
 
-  // Left navigation entry.
+  // Left navigation entry (single — dual modes live inside the room header).
+  ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
+    name: 'sidebar.panellist',
+    id: PANEL_ID,
+    order: 20,
+    label: 'Monitor BI',
+  }, BiSidebarIcon));
 }
 
 /** Chart glyph for the ECharts navigation entry. */
