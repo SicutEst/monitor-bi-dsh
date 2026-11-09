@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>安全值班大屏</title>
+<meta http-equiv="refresh" content="120">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#1a0a0a; color:#f5e6e6; font-family:'Segoe UI','Microsoft YaHei',sans-serif; padding:20px 28px; min-height:100vh; }
+  h1 { font-size:24px; text-align:center; letter-spacing:10px; color:#ff4d4d; text-shadow:0 0 14px rgba(255,77,77,.7); margin-bottom:4px; }
+  .sub { text-align:center; color:#8a5a5a; font-size:12px; margin-bottom:20px; letter-spacing:3px; }
+  .status-row { display:flex; gap:16px; margin-bottom:18px; }
+  .st { flex:1; border-radius:10px; padding:16px 18px; text-align:center; border:1px solid; }
+  .st.ok { background:rgba(39,174,96,.1); border-color:#27ae60; }
+  .st.warn { background:rgba(243,156,18,.1); border-color:#f39c12; }
+  .st.bad { background:rgba(231,76,60,.12); border-color:#e74c3c; }
+  .st .l { font-size:13px; color:#c0a0a0; }
+  .st .v { font-size:34px; font-weight:700; margin-top:4px; }
+  .st.ok .v { color:#27ae60; } .st.warn .v { color:#f39c12; } .st.bad .v { color:#e74c3c; }
+  .alarm-panel { background:rgba(231,76,60,.06); border:1px solid rgba(231,76,60,.3); border-radius:10px; padding:16px 20px; margin-bottom:16px; }
+  .alarm-panel h3 { color:#ff6b6b; font-size:15px; margin-bottom:12px; letter-spacing:2px; }
+  .alarm { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid rgba(231,76,60,.15); font-size:14px; align-items:center; }
+  .alarm .t { color:#ff6b6b; font-weight:700; width:70px; }
+  .alarm .loc { color:#f5c0c0; flex:1; }
+  .alarm .lvl { padding:2px 12px; border-radius:999px; font-size:12px; font-weight:600; }
+  .lvl.high { background:#e74c3c; color:#fff; } .lvl.mid { background:#f39c12; color:#fff; } .lvl.low { background:#f39c12; opacity:.7; color:#fff; }
+  .duo { display:flex; gap:16px; }
+  .panel { flex:1; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:14px 16px; }
+  .panel h3 { font-size:13px; color:#c0a0a0; margin-bottom:10px; letter-spacing:2px; }
+  #trendChart, #pieChart { width:100%; height:240px; }
+  .footer { color:#7a4a4a; font-size:11px; text-align:center; margin-top:14px; }
+</style>
+</head>
+<body>
+<h1>安全值班大屏</h1>
+<div class="sub">SAFETY MONITORING · 数据实时刷新 · 异常自动标红</div>
+
+<div class="status-row" id="statuses"></div>
+
+<div class="alarm-panel">
+  <h3>⚠ 当前报警与隐患</h3>
+  <div id="alarms"></div>
+</div>
+
+<div class="duo">
+  <div class="panel"><h3>近 7 天报警趋势</h3><div id="trendChart"></div></div>
+  <div class="panel"><h3>隐患类型分布</h3><div id="pieChart"></div></div>
+</div>
+
+<div class="footer">安全值班大屏 · 数据源 bi 数仓 · 每 2 分钟自动刷新</div>
+
+<script>
+/*__DATA__*/
+// DATA: { statuses:[{label,value,level}], alarms:[{time,location,level,text}], trend:{labels:[],values:[]}, pie:[{name,value}] }
+const fmt = n => Number(n||0).toLocaleString('zh-CN');
+const D = typeof DATA !== 'undefined' ? DATA : {
+  statuses: [ {label:'今日报警', value:3, level:'bad'}, {label:'已处理', value:2, level:'ok'}, {label:'待处理', value:1, level:'warn'}, {label:'连续安全天数', value:45, level:'ok'} ],
+  alarms: [ {time:'09:12', location:'2号仓库东侧', level:'high', text:'烟雾报警'}, {time:'08:40', location:'装卸区 B 道口', level:'mid', text:'未戴安全帽'} ],
+  trend: { labels:['11-01','11-02','11-03','11-04','11-05','11-06','11-07'], values:[2,5,3,1,4,2,3] },
+  pie: [ {name:'违规操作', value:8}, {name:'消防隐患', value:5}, {name:'设备异常', value:3}, {name:'其他', value:2} ]
+};
+
+document.getElementById('statuses').innerHTML = D.statuses.map(s =>
+  `<div class="st ${s.level}"><div class="l">${s.label}</div><div class="v">${fmt(s.value)}</div></div>`
+).join('');
+
+document.getElementById('alarms').innerHTML = (D.alarms||[]).map(a =>
+  `<div class="alarm"><span class="t">${a.time}</span><span class="loc">${a.location} — ${a.text}</span><span class="lvl ${a.level}">${a.level==='high'?'紧急':a.level==='mid'?'较重':'一般'}</span></div>`
+).join('') || '<div style="color:#27ae60;padding:10px 0">当前无报警 ✅</div>';
+
+echarts.init(document.getElementById('trendChart')).setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:40,right:20,top:20,bottom:30},
+  xAxis:{type:'category',data:D.trend.labels,axisLabel:{color:'#c0a0a0',fontSize:11}},
+  yAxis:{type:'value',splitLine:{lineStyle:{color:'rgba(255,255,255,.06)'}},axisLabel:{color:'#c0a0a0'}},
+  series:[{type:'line',data:D.trend.values,smooth:true,lineStyle:{color:'#ff6b6b',width:2.5},itemStyle:{color:'#ff6b6b'},areaStyle:{color:'rgba(255,107,107,.15)'}}]
+});
+
+echarts.init(document.getElementById('pieChart')).setOption({
+  tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
+  series:[{type:'pie',radius:['44%','70%'],
+    data:D.pie.map((p,i)=>({name:p.name,value:p.value,itemStyle:{color:['#e74c3c','#f39c12','#3498db','#95a5a6'][i%4]}})),
+    label:{color:'#f5c0c0',fontSize:11}, itemStyle:{borderColor:'#1a0a0a',borderWidth:2}}]
+});
+</script>
+</body>
+</html>
