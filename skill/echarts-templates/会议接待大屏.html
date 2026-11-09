@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>会议接待大屏</title>
+<meta http-equiv="refresh" content="600">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:linear-gradient(135deg, #0a1a2a 0%, #0d2137 100%); color:#e6edf3; font-family:'Segoe UI','Microsoft YaHei',sans-serif; padding:36px 48px; min-height:100vh; display:flex; flex-direction:column; }
+  .brand { text-align:center; margin-bottom:28px; }
+  .brand h1 { font-size:32px; letter-spacing:12px; color:#e6edf3; text-shadow:0 0 20px rgba(77,107,254,.8); }
+  .brand .welcome { font-size:16px; color:#7a9ab0; margin-top:8px; letter-spacing:4px; }
+  .kpis { display:flex; gap:22px; justify-content:center; margin-bottom:32px; }
+  .kpi { width:240px; background:linear-gradient(180deg, rgba(77,107,254,.15), rgba(77,107,254,.05)); border:1px solid rgba(77,107,254,.4); border-radius:14px; padding:24px 28px; text-align:center; }
+  .kpi .l { font-size:14px; color:#7a9ab0; letter-spacing:2px; }
+  .kpi .v { font-size:44px; font-weight:700; color:#fff; margin-top:8px; text-shadow:0 0 16px rgba(77,107,254,.7); }
+  .kpi .u { font-size:13px; color:#7a9ab0; }
+  .duo { display:flex; gap:28px; flex:1; min-height:0; }
+  .panel { flex:1; background:rgba(255,255,255,.04); border:1px solid rgba(77,107,254,.25); border-radius:14px; padding:18px 22px; }
+  .panel h3 { font-size:14px; color:#7a9ab0; letter-spacing:3px; margin-bottom:14px; }
+  #revChart, #distChart { width:100%; height:320px; }
+  .footer { color:#3a5a7a; font-size:11px; text-align:center; margin-top:20px; letter-spacing:2px; }
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <h1>Monitor BI 数智中心</h1>
+  <div class="welcome">热 列 欢 迎 各 位 领 导 莅 临 指 导</div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="duo">
+  <div class="panel"><h3>年度业绩走势</h3><div id="revChart"></div></div>
+  <div class="panel"><h3>业务结构占比</h3><div id="distChart"></div></div>
+</div>
+
+<div class="footer">MONITOR BI DIGITAL CENTER · 欢迎标语可在数据段自定义</div>
+
+<script>
+/*__DATA__*/
+// DATA: { welcome:'欢迎词', kpis:[{label,value,unit}], revenue:{labels:[],values:[]}, dist:[{name,value}] }
+const fmt = n => Number(n||0).toLocaleString('zh-CN');
+const D = typeof DATA !== 'undefined' && DATA.kpis ? DATA : {
+  welcome: '热列欢迎各位领导莅临指导',
+  kpis: [ {label:'年度营收', value:12800, unit:'万'}, {label:'累计客户', value:368, unit:'家'}, {label:'交付项目', value:86, unit:'个'} ],
+  revenue: { labels:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'], values:[800,920,1050,980,1120,1260,1180,1320,1450,1380,1520,1600] },
+  dist: [ {name:'设备销售', value:5200}, {name:'技术服务', value:3800}, {name:'配件耗材', value:2400}, {name:'其他', value:1400} ]
+};
+if (D.welcome) {
+  const w = document.querySelector('.brand .welcome');
+  if (w) w.textContent = D.welcome;
+}
+
+document.getElementById('kpis').innerHTML = D.kpis.map(k =>
+  `<div class="kpi"><div class="l">${k.label}</div><div class="v">${fmt(k.value)}</div><div class="u">${k.unit||''}</div></div>`
+).join('');
+
+echarts.init(document.getElementById('revChart')).setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:60,right:30,top:30,bottom:30},
+  xAxis:{type:'category',data:D.revenue.labels,axisLabel:{color:'#7a9ab0',fontSize:11}},
+  yAxis:{type:'value',splitLine:{lineStyle:{color:'rgba(255,255,255,.06)'}},axisLabel:{color:'#7a9ab0'}},
+  series:[{name:'营收',type:'line',data:D.revenue.values,smooth:true,lineStyle:{width:3,color:'#4d6bfe'},itemStyle:{color:'#4d6bfe'},symbolSize:8,
+    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(77,107,254,.4)'},{offset:1,color:'rgba(77,107,254,0)'}]}}}]
+});
+
+echarts.init(document.getElementById('distChart')).setOption({
+  tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
+  series:[{type:'pie',radius:['46%','72%'],
+    data:D.dist.map((d,i)=>({name:d.name,value:d.value,itemStyle:{color:['#4d6bfe','#2ea44f','#e67e22','#8e44ad'][i%4]}})),
+    label:{color:'#7a9ab0',fontSize:12}, itemStyle:{borderColor:'#0d2137',borderWidth:2}}]
+});
+</script>
+</body>
+</html>
