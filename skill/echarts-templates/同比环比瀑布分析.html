@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>同比环比分析(瀑布)</title>
+<meta http-equiv="refresh" content="1800">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; color:#1f2d3d; font-family:'Segoe UI','Microsoft YaHei',sans-serif; padding:24px 32px; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .sub { color:#8492a6; font-size:12px; margin-bottom:18px; }
+  .explain { background:#f8f9fb; border-left:4px solid #4d6bfe; padding:12px 18px; font-size:13px; line-height:1.8; border-radius:0 8px 8px 0; margin-bottom:20px; }
+  #waterfall { width:100%; height:460px; }
+  .legend-note { color:#8492a6; font-size:11px; margin-top:8px; }
+  .legend-note .up { color:#27ae60; font-weight:600; } .legend-note .down { color:#e74c3c; font-weight:600; }
+</style>
+</head>
+<body>
+<h1>同比环比分析(瀑布图)</h1>
+<div class="sub">起点 → 各因素增减 → 终点,一眼看清涨跌构成 ｜ 数据源 bi 数仓</div>
+<div class="explain">绿色柱 = 该因素<b>贡献了增长</b>;红色柱 = 该因素<b>造成下滑</b>;灰色柱 = 期初/期末存量。鼠标悬停看明细。</div>
+<div id="waterfall"></div>
+<div class="legend-note">瀑布图 DevExpress 不支持,此页为 ECharts 专长模板 ｜ ⚙ 刷新设置见右下角(如有)</div>
+
+<script>
+/*__DATA__*/
+// DATA 结构:{ start:{name,value}, steps:[{name,value}], end:{name,value} }
+// value 正=增长(绿) 负=下降(红)
+const D = typeof DATA !== 'undefined' ? DATA : {
+  start: { name: '期初', value: 100 },
+  steps: [ { name: '因素A', value: 30 }, { name: '因素B', value: -15 }, { name: '因素C', value: 25 } ],
+  end:   { name: '期末', value: 140 }
+};
+
+// 构造瀑布数据:每项一个辅助底座(透明) + 可视柱
+const items = [D.start].concat(D.steps).concat([D.end]);
+let running = 0;
+const base = [], vis = [], colors = [], labels = [];
+items.forEach((it, i) => {
+  const isFirstOrLast = i === 0 || i === items.length - 1;
+  const v = Number(it.value);
+  if (isFirstOrLast) {
+    base.push(0);
+    vis.push(v);
+    colors.push('#4d6bfe');
+  } else {
+    if (v >= 0) { base.push(running); vis.push(v); colors.push('#27ae60'); }
+    else { base.push(running + v); vis.push(-v); colors.push('#e74c3c'); }
+    running += v;
+  }
+  labels.push(it.name);
+});
+const finalTotal = running;
+
+echarts.init(document.getElementById('waterfall')).setOption({
+  tooltip:{ trigger:'axis', axisPointer:{type:'shadow'},
+    formatter: params => {
+      let out = params[0].name + '<br/>';
+      params.forEach(p => { if (p.seriesName !== '底座' && p.value) out += p.seriesName + ': ' + p.value + '<br/>'; });
+      return out;
+    }},
+  grid:{ left:70, right:40, top:40, bottom:40 },
+  xAxis:{ type:'category', data:labels, axisLabel:{ fontSize:12, interval:0 } },
+  yAxis:{ type:'value', splitLine:{ lineStyle:{ color:'#f2f4f7' } } },
+  series:[
+    { name:'底座', type:'bar', stack:'w', itemStyle:{ color:'transparent' }, emphasis:{ disabled:true }, data:base, barWidth:'45%' },
+    { name:'变动', type:'bar', stack:'w', itemStyle:{}, data:vis.map((v,i) => ({ value: v, itemStyle: { color: i===0 || i===items.length-1 ? '#4d6bfe' : (v>=0 ? '#27ae60' : '#e74c3c'), borderRadius:[4,4,0,0] } })), barWidth:'45%',
+      label:{ show:true, position:'top', formatter: p => (p.data.value >= 0 ? '+' : '') + p.data.value, fontSize: 11 } }
+  ]
+});
+</script>
+</body>
+</html>
