@@ -39,6 +39,7 @@ export function BiPanel({ api, SessionProvider, renderSlot, biChatSlot, echartsC
   }
   const [bi, setBi] = useState(null);
   const [ec, setEc] = useState(null);
+  const [ecConfirmed, setEcConfirmed] = useState(typeof localStorage !== 'undefined' && localStorage.getItem('monitorbi.echarts.confirmed') === '1');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const ownedBi = useRef(null);
@@ -68,7 +69,14 @@ export function BiPanel({ api, SessionProvider, renderSlot, biChatSlot, echartsC
     if (typeof localStorage !== 'undefined') localStorage.setItem(kind === 'bi' ? BI_STORE : EC_STORE, acquired.sessionId);
   }
 
+  function confirmEcharts() {
+    if (typeof localStorage !== 'undefined') localStorage.setItem('monitorbi.echarts.confirmed', '1');
+    setEcConfirmed(true);
+    activate('echarts');
+  }
+
   function activate(kind) {
+    if (kind === 'echarts' && !ecConfirmed) { setMode('echarts'); return; } // 未确认:只切模式,显示告知卡
     setBusy(true);
     (async () => {
       try {
@@ -148,7 +156,22 @@ export function BiPanel({ api, SessionProvider, renderSlot, biChatSlot, echartsC
       {!error && busy && !(mode === 'bi' ? bi : ec) && <div role="status" style={{ padding: 24, opacity: 0.7 }}>正在打开{(mode === 'bi' ? ' BI 看板' : ' ECharts')}会话…</div>}
       {mode === 'bi' && bi && SessionProvider && renderSlot && biChatSlot &&
         <SessionProvider session={bi.reference}>{renderSlot(biChatSlot, {})}</SessionProvider>}
-      {mode === 'echarts' && ec && SessionProvider && renderSlot && echartsChatSlot &&
+      {mode === 'echarts' && !ecConfirmed && <div style={{ padding: '32px 40px', maxWidth: 720, margin: '0 auto' }}>
+        <h2 style={{ fontSize: 18, marginBottom: 14 }}>📈 ECharts 漂亮版</h2>
+        <p style={{ fontSize: 13, lineHeight: 2, color: '#1f2d3d' }}>
+          本模式产出的报表 <b>使用 Monitor BI 的 PostgreSQL 数据</b>(与 BI 看板同源),但由 ECharts <b>自行生成为一个独立的网页文件</b>:
+        </p>
+        <ul style={{ fontSize: 13, lineHeight: 2.2, color: '#4a5568', paddingLeft: 20 }}>
+          <li><b>不在标准 Monitor BI 页面里</b>——BI 的报表列表中看不到它,也不能在 BI 里编辑</li>
+          <li>形式为<b>独立网页文件</b>(双击即可打开、可发微信/U盘)或<b>内网端口页面</b>(需一台常开的机器提供端口)</li>
+          <li>数据为<b>生成时刻的快照</b>;可设置<b>刷新频率</b>(生成后页面右下角 ⚙,可选 15/30/60 分钟或手动输入)</li>
+        </ul>
+        <button type="button" onClick={confirmEcharts} style={{
+          marginTop: 18, padding: '8px 28px', fontSize: 13, fontWeight: 600,
+          border: 'none', borderRadius: 999, background: '#4d6bfe', color: '#fff', cursor: 'pointer',
+        }}>明白了,开始</button>
+      </div>}
+      {mode === 'echarts' && ecConfirmed && ec && SessionProvider && renderSlot && echartsChatSlot &&
         <SessionProvider session={ec.reference}>{renderSlot(echartsChatSlot, {})}</SessionProvider>}
     </div>
   </div>;
