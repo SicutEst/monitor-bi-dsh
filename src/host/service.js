@@ -46,6 +46,14 @@ export const BI_CONTEXT_TEXT = [
   '④产出分两种:日常/团队共用的报表默认做 Monitor BI 看板;挂墙大屏/给客户或领导的汇报/内容多筛选多/点名要好看的,改用 ECharts 漂亮版(独立 HTML,见 bi_guide 的 ECharts 产线节)——但改走 ECharts 前必须先向用户完整告知(不在标准 Monitor BI 页面/形式为独立文件或端口页/数据是生成时刻快照)并等用户明确确认,确认前不许生成;拿不准就做 Monitor BI 并在交付时告知有 ECharts 可选;⑤生成 XML 用 bi_write 存草稿再 import/save;⑥改已有看板必须用 save(ID/网址不变),只有用户明说"做一张新的"才 import 新盘;⑦部署在英文语言环境,完成后切回中文;⑧遇到报错先查 SKILL.md 的"常见报错速查"节(bi_guide 可重读)。',
 ].join('\n');
 
+
+export const ECHARTS_CONTEXT_TEXT = [
+  '【ECharts 图表房间】本房间产出 ECharts 漂亮版报表(独立 HTML 文件,不在标准 Monitor BI 页面里)。',
+  '规矩:①动手前必须先向用户完整告知并等确认——产出不在标准 Monitor BI 页面(BI 列表看不到)、形式为独立网页文件(双击可开发微信)或内网端口页(需常驻服务)、数据为生成时刻快照;用户未确认前不写代码;',
+  '②流程:查 bi 数仓(psql,中文 SQL 走临时文件)→套 skill/echarts-templates/ 四张模板→数据烧入→交付单文件;③页面自带刷新频率设置(用户在页面右下角⚙调);④若用户要 30 分钟新鲜数据,告知需要常驻服务(本机已可演示);⑤详细规矩见 bi_guide 的 ECharts 产线节;',
+  '⑥交付时给用户:文件路径+双击打开说明+刷新频率设置说明。',
+].join(String.fromCharCode(10));
+
 export class MonitorBiService extends TypertRemoteService {
   static inject = ['tools'];
 
@@ -55,6 +63,7 @@ export class MonitorBiService extends TypertRemoteService {
     this.config = config;
     /** session ids opened by the BI panel → get the BI system prompt */
     this.biSessions = new Set();
+    this.echartsSessions = new Set();
 
     for (const tool of createToolDefinitions()) {
       ctx.tools.register(tool);
@@ -65,7 +74,7 @@ export class MonitorBiService extends TypertRemoteService {
         name: 'monitor-bi-builder:session',
         order: 9400,
         interpolate: false,
-        text: ({ agent }) => (this.biSessions.has(agent?.session?.id) ? BI_CONTEXT_TEXT : ''),
+        text: ({ agent }) => { const sid = agent?.session?.id; if (this.biSessions.has(sid)) return BI_CONTEXT_TEXT; if (this.echartsSessions.has(sid)) return ECHARTS_CONTEXT_TEXT; return ''; }
       });
     });
 
@@ -111,6 +120,15 @@ export class MonitorBiService extends TypertRemoteService {
     } catch (e) {
       return { ok: false, error: String(e && e.message || e) };
     }
+  }
+
+  /** Called by the ECharts panel after it opens a native session. */
+  async setEchartsContext(request) {
+    const { sessionId } = request ?? {};
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 160) throw new Error('无效会话');
+    this.echartsSessions.add(sessionId);
+    if (this.echartsSessions.size > 50) { const f = this.echartsSessions.values().next().value; this.echartsSessions.delete(f); }
+    return { ok: true };
   }
 
   /** Check npm registry for a newer version; called by the panel on open. */
@@ -224,7 +242,7 @@ function createToolDefinitions() {
 
 // Typert Remote 装饰(照 qiaomu-rss):把要暴露给网页面板的方法装饰成 Remote
 export function applyRemoteDecorators() {
-  const names = ['setBiContext', 'getGuide', 'checkUpdate', 'performUpdate'];
+  const names = ['setBiContext', 'setEchartsContext', 'getGuide', 'checkUpdate', 'performUpdate'];
   const prototype = MonitorBiService.prototype;
   for (const name of names) {
     Remote(name)(prototype[name], {
