@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>团队绩效墙</title>
+<meta http-equiv="refresh" content="300">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0d1526; color:#e6edf3; font-family:'Segoe UI','Microsoft YaHei',sans-serif; padding:24px 32px; min-height:100vh; }
+  h1 { font-size:24px; text-align:center; letter-spacing:6px; color:#e6edf3; margin-bottom:4px; }
+  .sub { text-align:center; color:#5a6a8a; font-size:12px; margin-bottom:20px; letter-spacing:2px; }
+  .podium { display:flex; gap:20px; justify-content:center; margin-bottom:24px; }
+  .medal { flex:1; max-width:280px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border-radius:12px; padding:20px; text-align:center; border-top:4px solid; }
+  .medal.gold { border-color:#f1c40f; } .medal.silver { border-color:#b0b8c4; } .medal.bronze { border-color:#cd7f32; }
+  .medal .rank { font-size:28px; margin-bottom:6px; }
+  .medal .name { font-size:18px; font-weight:700; margin-bottom:8px; }
+  .medal .score { font-size:32px; font-weight:700; color:#2ea44f; }
+  .medal .unit { color:#8492a6; font-size:12px; }
+  .board { background:rgba(255,255,255,.03); border-radius:12px; padding:16px 24px; }
+  .board h3 { font-size:14px; color:#8492a6; margin-bottom:12px; letter-spacing:2px; }
+  .row { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:14px; }
+  .row .r { width:40px; color:#5a6a8a; } .row .n { flex:1; } .row .v { font-weight:700; color:#2ea44f; }
+  .row.top1 .v { color:#f1c40f; } .row.top2 .v { color:#c0c8d0; } .row.top3 .v { color:#cd7f32; }
+  .feed { margin-top:20px; }
+  .feed h3 { font-size:14px; color:#8492a6; margin-bottom:10px; letter-spacing:2px; }
+  .feed-item { padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:13px; color:#a0aec0; }
+  .feed-item b { color:#e6edf3; }
+  .footer { color:#3a4a6a; font-size:11px; text-align:center; margin-top:16px; }
+</style>
+</head>
+<body>
+<h1>团队绩效墙</h1>
+<div class="sub">TEAM PERFORMANCE WALL · 数据每小时刷新</div>
+
+<div class="podium" id="podium"></div>
+
+<div class="board">
+  <h3>完整排行</h3>
+  <div id="rows"></div>
+</div>
+
+<div class="feed" id="feed">
+  <h3>最近达成</h3>
+  <div id="feedList"></div>
+</div>
+
+<div class="footer">团队绩效墙 · 数据源 bi 数仓 · ⚙ 刷新见页面 meta / 常驻服务</div>
+
+<script>
+/*__DATA__*/
+// DATA: { rankings: [{name, value, unit}], achievements: [{who, what, when}] }
+const D = typeof DATA !== 'undefined' ? DATA : {
+  rankings: [
+    { name:'示例A组', value: 1200, unit:'万' }, { name:'示例B组', value: 980, unit:'万' },
+    { name:'示例C组', value: 760, unit:'万' }, { name:'示例D组', value: 540, unit:'万' },
+  ],
+  achievements: [ { who:'示例', what:'完成目标', when:'今天' } ]
+};
+const fmt = n => Number(n||0).toLocaleString('zh-CN', {maximumFractionDigits:1});
+const medals = ['🥇','🥈','🥉'];
+
+// 前三领奖台
+const top3 = D.rankings.slice(0, 3);
+const cls = ['gold','silver','bronze'];
+document.getElementById('podium').innerHTML = top3.map((r, i) =>
+  `<div class="medal ${cls[i]}"><div class="rank">${medals[i]}</div><div class="name">${r.name}</div><div class="score">${fmt(r.value)}</div><div class="unit">${r.unit||''}</div></div>`
+).join('');
+
+// 完整排行
+document.getElementById('rows').innerHTML = D.rankings.map((r, i) =>
+  `<div class="row ${i<3?'top'+(i+1):''}"><div class="r">${i+1}</div><div class="n">${r.name}</div><div class="v">${fmt(r.value)}</div></div>`
+).join('');
+
+// 最近达成动态
+document.getElementById('feedList').innerHTML = (D.achievements||[]).map(a =>
+  `<div class="feed-item"><b>${a.who}</b> ${a.what} · ${a.when}</div>`
+).join('') || '<div class="feed-item">暂无动态</div>';
+</script>
+</body>
+</html>
