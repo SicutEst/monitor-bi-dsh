@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>目标达成追踪</title>
+<meta http-equiv="refresh" content="1800">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; color:#1f2d3d; font-family:'Segoe UI','Microsoft YaHei',sans-serif; padding:24px 32px; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .sub { color:#8492a6; font-size:12px; margin-bottom:20px; }
+  .summary { display:flex; gap:16px; margin-bottom:20px; }
+  .s { flex:1; border:1px solid #e2e8f0; border-radius:10px; padding:14px 18px; }
+  .s .l { font-size:12px; color:#8492a6; }
+  .s .v { font-size:26px; font-weight:700; margin-top:4px; }
+  .s .v.ok { color:#27ae60; } .s .v.warn { color:#e67e22; } .s .v.bad { color:#e74c3c; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:right; color:#8492a6; font-weight:500; padding:9px 12px; border-bottom:2px solid #1f2d3d; font-size:12px; }
+  th:first-child, td:first-child { text-align:left; }
+  td { padding:9px 12px; text-align:right; border-bottom:1px solid #f2f4f7; }
+  .progress { position:relative; background:#f0f2f5; border-radius:999px; height:18px; width:160px; overflow:hidden; }
+  .progress .bar { height:100%; border-radius:999px; }
+  .progress .pct { font-size:11px; }
+  .bar.ok { background:#27ae60; } .bar.warn { background:#f39c12; } .bar.bad { background:#e74c3c; }
+</style>
+</head>
+<body>
+<h1>目标达成追踪</h1>
+<div class="sub">目标 vs 实际 · 达成率进度条 · 按达成率自动变色(≥100%绿/70-100%橙/<70%红)｜ ECharts 产线模板</div>
+
+<div class="summary" id="summary"></div>
+
+<table>
+  <thead><tr><th>指标/团队</th><th>目标</th><th>实际</th><th>达成率</th><th>进度条</th><th>状态</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<div class="footer">目标达成追踪 · 单文件自包含 · 数据结构: [{name, target, actual}] · 模板可按需增行</div>
+
+<script>
+/*__DATA__*/
+// DATA: [{name:'销售额', target:1000, actual:950, unit:'万'}, ...]
+const fmt = n => Number(n||0).toLocaleString('zh-CN', {maximumFractionDigits:1});
+const rows = (typeof DATA !== 'undefined' && DATA.length) ? DATA : [
+  { name:'销售额', target:1000, actual:1180, unit:'万' },
+  { name:'产量', target:5000, actual:4200, unit:'件' },
+  { name:'新客户', target:50, actual:31, unit:'家' },
+  { name:'回款', target:800, actual:850, unit:'万' },
+];
+const rate = r => Math.round(r.actual / r.target * 100);
+const colorCls = p => p >= 100 ? 'ok' : p >= 70 ? 'warn' : 'bad';
+const colorHex = p => p >= 100 ? '#27ae60' : p >= 70 ? '#f39c12' : '#e74c3c';
+
+// 汇总
+const tTotal = rows.reduce((s,r)=>s+Number(r.target),0);
+const aTotal = rows.reduce((s,r)=>s+Number(r.actual),0);
+const gRate = Math.round(aTotal/tTotal*100);
+document.getElementById('summary').innerHTML = [
+  ['总目标', fmt(tTotal), ''],
+  ['总实际', fmt(aTotal), ''],
+  ['综合达成率', gRate + '%', gRate >= 100 ? 'ok' : gRate >= 70 ? 'warn' : 'bad'],
+].map(([l,v,cls]) => `<div class="s"><div class="l">${l}</div><div class="v ${cls}">${v}</div></div>`).join('');
+
+// 明细行
+document.getElementById('rows').innerHTML = rows.map(r => {
+  const p = rate(r);
+  return `<tr><td>${r.name}</td><td>${fmt(r.target)}</td><td>${fmt(r.actual)}</td><td style="color:${colorHex(p)};font-weight:600">${p}%</td>` +
+    `<td><div class="progress"><div class="bar ${colorCls(Math.min(p,100))}" style="width:${Math.min(p,100)}%"></div></div></td>` +
+    `<td>${p >= 100 ? '✅ 已达成' : p >= 70 ? '⏳ 进行中' : '⚠ 落后'}</td></tr>`;
+}).join('');
+</script>
+</body>
+</html>
