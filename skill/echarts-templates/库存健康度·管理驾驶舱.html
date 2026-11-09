@@ -126,5 +126,41 @@ echarts.init(document.getElementById('donut')).setOption({
     itemStyle:{borderColor:'#fff',borderWidth:2}}]
 });
 </script>
+
+<div id="mbi-gear" style="position:fixed;right:18px;bottom:18px;z-index:999;">
+  <button id="mbi-gear-btn" onclick="document.getElementById('mbi-gear-pop').style.display=document.getElementById('mbi-gear-pop').style.display==='block'?'none':'block'" style="width:38px;height:38px;border-radius:50%;border:1px solid #dfe4ea;background:#fff;cursor:pointer;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.12)" title="刷新设置">⚙</button>
+  <div id="mbi-gear-pop" style="display:none;position:absolute;bottom:46px;right:0;width:240px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;box-shadow:0 8px 24px rgba(15,23,42,.18);font-size:12px;color:#1f2d3d">
+    <b>刷新频率</b>(分钟)<span style="color:#a0aec0">——本页数据为生成时刻快照,刷新=重新加载页面</span>
+    <div style="margin-top:10px;display:flex;gap:6px;align-items:center">
+      <button class="mbi-rf" onclick="mbiSetRefresh(15)" style="flex:1;padding:4px 0;cursor:pointer;border-radius:6px;border:1px solid #dfe4ea;background:#fff">15</button>
+      <button class="mbi-rf" onclick="mbiSetRefresh(30)" style="flex:1;padding:4px 0;cursor:pointer;border-radius:6px;border:1px solid #dfe4ea;background:#fff">30</button>
+      <button class="mbi-rf" onclick="mbiSetRefresh(60)" style="flex:1;padding:4px 0;cursor:pointer;border-radius:6px;border:1px solid #dfe4ea;background:#fff">60</button>
+      <input id="mbi-custom" type="number" min="1" placeholder="自定义" style="width:60px;padding:4px 6px;border:1px solid #dfe4ea;border-radius:6px" />
+      <button onclick="mbiSetRefresh(parseInt(document.getElementById('mbi-custom').value))" style="padding:4px 10px;cursor:pointer;border-radius:6px;border:1px solid #4d6bfe;background:#4d6bfe;color:#fff">设</button>
+    </div>
+    <div id="mbi-rf-now" style="margin-top:8px;color:#8492a6"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var mins = parseInt(localStorage.getItem('mbi_refresh_minutes') || '0');
+  if (mins > 0) {
+    var tag = document.createElement('meta');
+    tag.httpEquiv = 'refresh'; tag.content = String(mins * 60);
+    document.head.appendChild(tag);
+    var el = document.getElementById('mbi-rf-now');
+    if (el) el.textContent = '当前: 每 ' + mins + ' 分钟自动刷新(浏览器刷新后生效)';
+  }
+})();
+function mbiSetRefresh(m) {
+  if (!m || m < 1) return;
+  localStorage.setItem('mbi_refresh_minutes', String(m));
+  var tag = document.createElement('meta');
+  tag.httpEquiv = 'refresh'; tag.content = String(m * 60);
+  document.head.appendChild(tag);
+  var el = document.getElementById('mbi-rf-now');
+  if (el) el.textContent = '已设置: 每 ' + m + ' 分钟自动刷新(下次页面加载生效)';
+}
+</script>
 </body>
 </html>
