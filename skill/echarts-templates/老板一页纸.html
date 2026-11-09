@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>老板一页纸</title>
+<meta http-equiv="refresh" content="1800">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; color:#1f2d3d; font-family:'Segoe UI','Microsoft YaHei',sans-serif; padding:28px 36px; height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+  .hero { display:flex; align-items:baseline; gap:14px; border-bottom:3px solid #1f2d3d; padding-bottom:10px; }
+  .hero h1 { font-size:22px; }
+  .hero .date { color:#a0aec0; font-size:12px; }
+  .verdict { font-size:16px; font-weight:700; }
+  .kpi-row { display:flex; gap:0; margin:22px 0; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; }
+  .kpi { flex:1; padding:20px 26px; border-right:1px solid #f2f4f7; }
+  .kpi:last-child { border-right:none; }
+  .kpi .l { font-size:12px; color:#8492a6; }
+  .kpi .v { font-size:40px; font-weight:700; line-height:1.15; }
+  .kpi .v.red { color:#e74c3c; } .kpi .v.green { color:#27ae60; }
+  .main { display:flex; gap:24px; flex:1; min-height:0; }
+  .chart { flex:1; min-width:0; }
+  .chart h3 { font-size:14px; margin-bottom:8px; color:#4a5568; }
+  #trend, #compare { width:100%; height:100%; min-height:220px; }
+  .conclusion { margin-top:18px; background:#f8f9fb; border-left:4px solid #1f2d3d; padding:14px 20px; font-size:14px; line-height:1.8; border-radius:0 8px 8px 0; }
+  .conclusion b.red { color:#e74c3c; } .conclusion b.green { color:#27ae60; }
+  .footer { margin-top:auto; padding-top:12px; color:#c0c8d0; font-size:11px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>老板一页纸</h1>
+  <span class="verdict" id="verdict"></span>
+  <span style="flex:1"></span>
+  <span class="date" id="date"></span>
+</div>
+
+<div class="kpi-row" id="kpis"></div>
+
+<div class="main">
+  <div class="chart"><h3>近 12 个月趋势</h3><div id="trend"></div></div>
+  <div class="chart"><h3>本期 vs 上期</h3><div id="compare"></div></div>
+</div>
+
+<div class="conclusion" id="conclusion"></div>
+
+<div class="footer">老板一页纸 · 单屏无滚动 · 数据源 bi 数仓 · ⚙ 刷新设置见右下角</div>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+const fmt = n => Number(n||0).toLocaleString('zh-CN', {maximumFractionDigits:1});
+
+// KPI 行
+document.getElementById('kpis').innerHTML = DATA.kpis.map(k =>
+  `<div class="kpi"><div class="l">${k.label}</div><div class="v ${k.color||''}">${fmt(k.value)}</div><div class="l">${k.unit||''}</div></div>`
+).join('');
+
+// 裁定行
+const v = document.getElementById('verdict');
+v.textContent = DATA.verdict.text;
+v.className = 'verdict ' + DATA.verdict.level;
+
+// 趋势图
+const trend = echarts.init(document.getElementById('trend'));
+trend.setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:70,right:30,top:30,bottom:30},
+  xAxis:{type:'category',data:DATA.trend.months,axisLabel:{fontSize:11}},
+  yAxis:{type:'value',splitLine:{lineStyle:{color:'#f2f4f7'}},axisLabel:{formatter:v=>v>=1000?(v/1000)+'K':v}},
+  series:[
+    {name:'本期',type:'line',data:DATA.trend.current,smooth:true,lineStyle:{width:3,color:'#4d6bfe'},itemStyle:{color:'#4d6bfe'},symbolSize:7},
+    {name:'上期',type:'line',data:DATA.trend.previous,smooth:true,lineStyle:{width:2,type:'dashed',color:'#a0aec0'},itemStyle:{color:'#a0aec0'},symbolSize:5}
+  ],
+  legend:{data:['本期','上期'],top:0,textStyle:{fontSize:11}}
+});
+
+// 对比柱图
+const cmp = echarts.init(document.getElementById('compare'));
+cmp.setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:70,right:30,top:30,bottom:30},
+  xAxis:{type:'category',data:DATA.compare.labels,axisLabel:{fontSize:11}},
+  yAxis:{type:'value',splitLine:{lineStyle:{color:'#f2f4f7'}},axisLabel:{formatter:v=>v>=1000?(v/1000)+'K':v}},
+  series:[
+    {name:'本期',type:'bar',data:DATA.compare.current,itemStyle:{color:'#4d6bfe',borderRadius:[5,5,0,0]},barWidth:'30%'},
+    {name:'上期',type:'bar',data:DATA.compare.previous,itemStyle:{color:'#c0c8d0',borderRadius:[5,5,0,0]},barWidth:'30%'}
+  ],
+  legend:{data:['本期','上期'],top:0,textStyle:{fontSize:11}}
+});
+
+// 结论
+document.getElementById('conclusion').innerHTML = DATA.conclusion;
+</script>
+</body>
+</html>
