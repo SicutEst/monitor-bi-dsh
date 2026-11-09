@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>物流监控大屏</title>
+<meta http-equiv="refresh" content="300">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a1420; color:#e6edf3; font-family:'Segoe UI','Microsoft YaHei',sans-serif; padding:20px 28px; min-height:100vh; }
+  h1 { font-size:22px; text-align:center; letter-spacing:8px; color:#4d6bfe; margin-bottom:4px; text-shadow:0 0 12px rgba(77,107,254,.6); }
+  .sub { text-align:center; color:#5a6a8a; font-size:12px; margin-bottom:18px; letter-spacing:2px; }
+  .kpis { display:flex; gap:16px; margin-bottom:18px; }
+  .kpi { flex:1; background:linear-gradient(180deg, rgba(77,107,254,.12), rgba(77,107,254,.04)); border:1px solid rgba(77,107,254,.3); border-radius:10px; padding:14px 18px; text-align:center; }
+  .kpi .l { color:#7a8ab0; font-size:12px; }
+  .kpi .v { font-size:30px; font-weight:700; color:#e6edf3; margin-top:4px; text-shadow:0 0 10px rgba(77,107,254,.5); }
+  .duo { display:flex; gap:16px; margin-bottom:16px; }
+  .panel { flex:1; background:rgba(255,255,255,.03); border:1px solid rgba(77,107,254,.25); border-radius:10px; padding:14px 16px; }
+  .panel h3 { font-size:13px; color:#7a8ab0; margin-bottom:10px; letter-spacing:2px; }
+  #flowChart, #laneChart { width:100%; height:280px; }
+  .footer { color:#3a4a6a; font-size:11px; text-align:center; margin-top:14px; }
+</style>
+</head>
+<body>
+<h1>物流监控大屏</h1>
+<div class="sub">LOGISTICS MONITORING · 数据实时刷新</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="duo">
+  <div class="panel"><h3>线路运量排行</h3><div id="flowChart"></div></div>
+  <div class="panel"><h3>各仓出货对比</h3><div id="laneChart"></div></div>
+</div>
+
+<div class="footer">物流监控大屏 · 数据源 bi 数仓 · 每 5 分钟自动刷新</div>
+
+<script>
+/*__DATA__*/
+// DATA: { kpis:[{label,value,unit}], routes:[{name,value}], warehouses:[{name,ship,receive}] }
+const fmt = n => Number(n||0).toLocaleString('zh-CN', {maximumFractionDigits:0});
+const D = typeof DATA !== 'undefined' ? DATA : {
+  kpis: [ {label:'今日运单', value:320, unit:'单'}, {label:'在途车辆', value:45, unit:'辆'}, {label:'今日出货', value:1850, unit:'件'}, {label:'准时率', value:96, unit:'%'} ],
+  routes: [ {name:'上海线', value:120}, {name:'北京线', value:95}, {name:'广州线', value:78}, {name:'成都线', value:60} ],
+  warehouses: [ {name:'一号仓', ship:220, receive:180}, {name:'二号仓', ship:180, receive:150}, {name:'三号仓', ship:140, receive:160} ]
+};
+
+document.getElementById('kpis').innerHTML = D.kpis.map(k =>
+  `<div class="kpi"><div class="l">${k.label}</div><div class="v">${fmt(k.value)}<span style="font-size:13px"> ${k.unit||''}</span></div></div>`
+).join('');
+
+const rNames = D.routes.map(r=>r.name).reverse();
+const rValues = D.routes.map(r=>Number(r.value)).reverse();
+echarts.init(document.getElementById('flowChart')).setOption({
+  tooltip:{trigger:'axis'},
+  grid:{left:80,right:40,top:10,bottom:26},
+  xAxis:{type:'value',axisLabel:{color:'#7a8ab0'},splitLine:{lineStyle:{color:'rgba(255,255,255,.06)'}}},
+  yAxis:{type:'category',data:rNames,axisLabel:{color:'#e6edf3',fontSize:12}},
+  series:[{type:'bar',data:rValues,barWidth:'50%',itemStyle:{color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:'#1a3a6b'},{offset:1,color:'#4d6bfe'}]},borderRadius:[0,6,6,0]},label:{show:true,position:'right',color:'#e6edf3',fontSize:11}}]
+});
+
+const wNames = D.warehouses.map(w=>w.name);
+echarts.init(document.getElementById('laneChart')).setOption({
+  tooltip:{trigger:'axis'},
+  legend:{data:['出货','到货'],textStyle:{color:'#7a8ab0',fontSize:11},top:0},
+  grid:{left:50,right:30,top:36,bottom:26},
+  xAxis:{type:'category',data:wNames,axisLabel:{color:'#e6edf3',fontSize:12}},
+  yAxis:{type:'value',splitLine:{lineStyle:{color:'rgba(255,255,255,.06)'}},axisLabel:{color:'#7a8ab0'}},
+  series:[
+    {name:'出货',type:'bar',data:D.warehouses.map(w=>Number(w.ship)),itemStyle:{color:'#4d6bfe',borderRadius:[5,5,0,0]},barWidth:'26%'},
+    {name:'到货',type:'bar',data:D.warehouses.map(w=>Number(w.receive)),itemStyle:{color:'#27ae60',borderRadius:[5,5,0,0]},barWidth:'26%'}
+  ]
+});
+</script>
+</body>
+</html>
