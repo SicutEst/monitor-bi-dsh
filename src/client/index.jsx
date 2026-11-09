@@ -14,6 +14,7 @@ const PLUGIN_ID = 'monitor-bi-dsh';
 export const PANEL_ID = 'monitor-bi';
 export const ECHARTS_PANEL_ID = 'monitor-bi-echarts';
 const CHAT_SLOT = 'monitor-bi.chat';
+const ECHARTS_CHAT_SLOT = 'echarts.chat';
 
 /** Minimal JSON pass-through codec: the client forwards payloads verbatim. */
 const passthroughCodec = () => ({
@@ -34,13 +35,12 @@ function descriptor(name, hasParams = true) {
       ? { parameters: [{ name: 'request', wire: 'request', source: 'json', codec: passthroughCodec() }] }
       : { parameters: [] }),
     result: { mode: 'src-json' },
-    cancellation: { parameter: 'signal' },
   };
 }
 
 const REMOTE_SURFACE = {
   package: PLUGIN_ID,
-  descriptors: [descriptor('setBiContext'), descriptor('setEchartsContext'), descriptor('getGuide', false), descriptor('checkUpdate', false), descriptor('performUpdate', false)],
+  descriptors: [descriptor('setBiContext'), descriptor('setEchartsContext'), descriptor('checkUpdate', false), descriptor('performUpdate', false)],
 };
 
 export const inject = ['slots', 'layout', 'remote'];
@@ -59,21 +59,26 @@ function mountRoom(ctx) {
     if (outcome.ok) return outcome.value;
     throw outcome.error;
   };
+  // 所有 remote 调用包 try/catch:出错不冻结界面、错误可诊断(transfer-dsh 1.4.2/1.4.3 教训)
+  const safeCall = (name, fn) => async (...args) => {
+    try { return await fn(...args); }
+    catch (e) { console.error(`[monitor-bi-dsh] ${name} 失败:`, e); throw e; }
+  };
   const api = {
     ...nativeChatBridge(ctx),
-    setBiContext: (params) => call('setBiContext', params),
-    setEchartsContext: (params) => call('setEchartsContext', params),
-    checkUpdate: () => call('checkUpdate'),
-    performUpdate: () => call('performUpdate'),
+    setBiContext: safeCall('setBiContext', (params) => call('setBiContext', params)),
+    setEchartsContext: safeCall('setEchartsContext', (params) => call('setEchartsContext', params)),
+    checkUpdate: safeCall('checkUpdate', () => call('checkUpdate')),
+    performUpdate: safeCall('performUpdate', () => call('performUpdate')),
   };
 
   // Main room page (owns one BI session) + its native-conversation child slot.
   ctx.slots.inject('main', () => ctx.slots.register({
     name: 'main',
     key: PANEL_ID,
-    children: { [CHAT_SLOT]: { kind: 'single', scope: 'session' } },
+    children: { [CHAT_SLOT]: { kind: 'single', scope: 'session' }, [ECHARTS_CHAT_SLOT]: { kind: 'single', scope: 'session' } },
     inject: () => ({ api }),
-  }, (props) => <BiPanel {...props} biChatSlot="monitor-bi.chat" echartsChatSlot="echarts.chat" />));
+  }, (props) => <BiPanel {...props} biChatSlot={CHAT_SLOT} echartsChatSlot={ECHARTS_CHAT_SLOT} />));
   ctx.slots.inject(CHAT_SLOT, () => ctx.slots.register({ name: CHAT_SLOT }, NativeConversation));
   ctx.slots.inject('echarts.chat', () => ctx.slots.register({ name: 'echarts.chat' }, NativeConversation));
 
